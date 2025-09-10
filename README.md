@@ -21,7 +21,7 @@ Please follow PIO's installation instructions for best results.
 
 ### Setup
 
-You must add the ```lv_conf.h``` file from the 
+
 
 #### PIO setup
 
