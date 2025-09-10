@@ -19,7 +19,11 @@ Next steps:
 I installed the PlatformIO VS Code extension. (hereafter referred to as PIO) 
 Please follow PIO's installation instructions for best results.
 
-### PIO setup
+### Setup
+
+You must add the ```lv_conf.h``` file from the 
+
+#### PIO setup
 
 I had to do the following on Windows to add ```intelhex``` to my PIO venv packages.
 ```bash
