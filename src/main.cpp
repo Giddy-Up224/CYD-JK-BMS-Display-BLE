@@ -4,9 +4,18 @@
 #include <WebServer.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <LVGL_CYD.h>
 
-// parseDevice und InfoparseData
-// webserver
+
+/* Takes position of USB connector relative to screen. These are synonyms
+   as defined in LVGL_CYD.h:
+
+      #define USB_DOWN  LV_DISPLAY_ROTATION_0
+      #define USB_RIGHT LV_DISPLAY_ROTATION_90
+      #define USB_UP    LV_DISPLAY_ROTATION_180
+      #define USB_LEFT  LV_DISPLAY_ROTATION_270
+*/ 
+#define SCREEN_ORIENTATION USB_LEFT
 
 // Enable or disable debugging output
 #define DEBUG_ENABLED true
