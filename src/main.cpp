@@ -990,6 +990,10 @@ String getLastModified(File file) {
 void setup() {
   Serial.begin(115200);
   lastMillis = millis();
+
+  LVGL_CYD::begin(SCREEN_ORIENTATION);
+
+  // TODO: This can all go once I have LVGL set up.
   // WiFi initialisieren
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
