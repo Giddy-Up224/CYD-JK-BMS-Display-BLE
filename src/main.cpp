@@ -22,10 +22,18 @@
 #define DEBUG_PRINTF(...)
 #endif
 
+void handleFileList();
+void sendResponce();
+void handleFileUpload();
+void handleFileDelete();
+void handleFileView();
+void handleFormat();
+String getLastModified(File file);
+
 
 // WiFi credentials
-const char* ssid = "test";
-const char* password = "test";
+const char* ssid = "your-ssid";
+const char* password = "your-password";
 WebServer server(80);  // Webserver auf Port 80
 
 uint32_t minFreeHeap = UINT32_MAX;
