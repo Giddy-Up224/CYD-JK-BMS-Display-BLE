@@ -41,6 +41,7 @@ lv_obj_t* delta_voltages_table = nullptr;
 
 enum ScreenID {
     SCREEN_MAIN,
+    SCREEN_MORE,
     SCREEN_SETTINGS,
     SCREEN_LED,
     SCREEN_BL,
@@ -1104,6 +1105,7 @@ lv_obj_t * new_screen(lv_obj_t * parent) {
 }
 
 lv_obj_t * scr_main = nullptr;
+lv_obj_t * scr_more = nullptr;
 lv_obj_t * scr_settings = nullptr;
 lv_obj_t * btn_exit = nullptr;
 lv_obj_t * lbl_header = nullptr;
@@ -1415,21 +1417,56 @@ void go_cell_voltages() {
   lv_screen_load(scr_cell_voltages);
 }
 
-void go_main(){
-  if(!scr_main){
-    scr_main = new_screen(NULL);
-    lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+void go_more(){
+  if(!scr_more){
+    scr_more = new_screen(NULL);
+    lv_obj_set_size(scr_more, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    lv_obj_t * go_to_settings_btn = lv_btn_create(scr_main);
+    // Add cell voltages button
+    lv_obj_t* cell_voltages_btn = lv_btn_create(scr_more);
+    lv_obj_set_size(cell_voltages_btn, 120, 40);
+    lv_obj_align(cell_voltages_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
+    lv_obj_add_event_cb(cell_voltages_btn, [](lv_event_t *e) -> void
+                        {
+        nav_push(ScreenID::SCREEN_MORE);
+        go_cell_voltages(); }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *cell_voltages_btn_label = lv_label_create(cell_voltages_btn);
+    lv_label_set_text(cell_voltages_btn_label, "Cell Voltages");
+    lv_obj_center(cell_voltages_btn_label);
+
+    // Settings
+    lv_obj_t * go_to_settings_btn = lv_btn_create(scr_more);
     lv_obj_align(go_to_settings_btn, LV_ALIGN_TOP_LEFT, -10, 10);
     lv_obj_add_event_cb(go_to_settings_btn, [](lv_event_t * e) -> void {
-      nav_push(ScreenID::SCREEN_MAIN);
+      nav_push(ScreenID::SCREEN_MORE);
       go_settings();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * go_to_settings_btn_label = lv_label_create(go_to_settings_btn);
     lv_label_set_text(go_to_settings_btn_label, LV_SYMBOL_SETTINGS);
     lv_obj_align_to(go_to_settings_btn_label, go_to_settings_btn, LV_ALIGN_CENTER, 0, 0);
+  }
+  lv_label_set_text(lbl_header, "");
+  lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_screen_load(scr_more);
+}
+
+void go_main(){
+  if(!scr_main){
+    scr_main = new_screen(NULL);
+    lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    lv_obj_t * go_to_more_btn = lv_btn_create(scr_main);
+    lv_obj_align(go_to_more_btn, LV_ALIGN_TOP_LEFT, -10, 10);
+    lv_obj_add_event_cb(go_to_more_btn, [](lv_event_t * e) -> void {
+      nav_push(ScreenID::SCREEN_MAIN);
+      go_more();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t * go_to_settings_btn_label = lv_label_create(go_to_more_btn);
+    lv_label_set_text(go_to_settings_btn_label, "...");
+    lv_obj_align_to(go_to_settings_btn_label, go_to_more_btn, LV_ALIGN_CENTER, 0, 0);
 
     soc_gauge = lv_arc_create(scr_main);
     lv_arc_set_range(soc_gauge, 0, 100);
@@ -1451,19 +1488,6 @@ void go_main(){
     lv_obj_set_style_text_color(soc_gauge_label, lv_color_black(), LV_PART_MAIN);
     lv_label_set_text(soc_gauge_label, "0%");
     lv_obj_center(soc_gauge_label);
-    
-    // Add cell voltages button
-    lv_obj_t * cell_voltages_btn = lv_btn_create(scr_main);
-    lv_obj_set_size(cell_voltages_btn, 120, 40);
-    lv_obj_align(cell_voltages_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
-    lv_obj_add_event_cb(cell_voltages_btn, [](lv_event_t * e) -> void {
-      nav_push(ScreenID::SCREEN_MAIN);
-      go_cell_voltages();
-    }, LV_EVENT_CLICKED, NULL);
-    
-    lv_obj_t * cell_voltages_btn_label = lv_label_create(cell_voltages_btn);
-    lv_label_set_text(cell_voltages_btn_label, "Cell Voltages");
-    lv_obj_center(cell_voltages_btn_label);
 
     // Initialize display with current BMS data
     update_bms_display();
