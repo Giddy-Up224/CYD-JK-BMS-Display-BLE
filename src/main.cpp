@@ -1304,6 +1304,14 @@ void go_main(){
     lv_obj_set_size(soc_gauge, 150, 150);
     lv_arc_set_rotation(soc_gauge, 135);
     lv_arc_set_bg_angles(soc_gauge, 0, 270);
+    
+    // Make arc read-only (remove knob and disable interaction)
+    lv_obj_clear_flag(soc_gauge, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_opa(soc_gauge, LV_OPA_TRANSP, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(soc_gauge, 0, LV_PART_KNOB);
+    
+    // Position the arc on screen first
+    lv_obj_align(soc_gauge, LV_ALIGN_CENTER, 0, 0);
 
     // Create label for percentage text (centered in the arc)
     soc_gauge_label = lv_label_create(scr_main);
@@ -1311,9 +1319,6 @@ void go_main(){
     lv_obj_set_style_text_color(soc_gauge_label, lv_color_black(), LV_PART_MAIN);
     lv_label_set_text(soc_gauge_label, "0%");
     lv_obj_align_to(soc_gauge_label, soc_gauge, LV_ALIGN_CENTER, 0, 0);
-    
-    // Position the arc on the screen
-    lv_obj_align(soc_gauge, LV_ALIGN_CENTER, 0, 0);
     
     // Initialize display with current BMS data
     update_bms_display();
