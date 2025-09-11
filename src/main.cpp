@@ -32,6 +32,9 @@
 #endif
 #define NAVIGATION_STACK_SIZE 8
 
+// Global lvgl elements
+lv_obj_t* soc_gauge;
+
 enum ScreenID {
     SCREEN_MAIN,
     SCREEN_SETTINGS,
@@ -704,6 +707,7 @@ void JKBMS::parseData() {
 //    server.send(200, "text/html", redirectPage);
 //  }
 //}
+
 // TODO: Here are the value fields. Convert to LVGL labels, tables or text areas.
 //void handleJSON() {
 //  const size_t capacity = JSON_OBJECT_SIZE(50) + JSON_ARRAY_SIZE(16) + 2000;  // Ausreichend großer Buffer
@@ -1014,6 +1018,13 @@ void handleUptime() {
 //  return String(buffer);
 //}
 
+static void set_soc_gauge_value(void* soc_gauge_label){
+  for (int i = 0; i < bmsDeviceCount; i++) {
+    JKBMS& bms = jkBmsDevices[i];
+    lv_label_set_text_fmt((lv_obj_t*)soc_gauge_label, "%d%%", bms.Percent_Remain);
+  }
+}
+
 // creates a new obj to use as base screen, and set some properties, such as flex
 // vertical arrangement, centered horizontally, transparent background, etc.
 lv_obj_t * new_screen(lv_obj_t * parent) {
@@ -1270,6 +1281,21 @@ void go_main(){
     lv_obj_t * go_to_settings_btn_label = lv_label_create(go_to_settings_btn);
     lv_label_set_text(go_to_settings_btn_label, LV_SYMBOL_SETTINGS);
     lv_obj_align_to(go_to_settings_btn_label, go_to_settings_btn, LV_ALIGN_CENTER, 0, 0);
+
+    soc_gauge = lv_arc_create(scr_main);
+    lv_arc_set_range(soc_gauge, 0, 100);
+    lv_obj_set_size(soc_gauge, 150, 150);
+    lv_arc_set_rotation(soc_gauge, 135);
+    lv_arc_set_bg_angles(soc_gauge, 0, 270);
+
+    JKBMS& bms = jkBmsDevices[0];
+    char buf[10];
+    lv_arc_set_value(soc_gauge, bms.Percent_Remain);
+    lv_obj_t* soc_gauge_label = lv_label_create(soc_gauge); // May need to change the parent to scr_main
+    lv_obj_set_style_text_font(soc_gauge_label, &lv_font_montserrat_28, LV_PART_MAIN);
+    snprintf(buf, sizeof(buf), "%d%%", bms.Percent_Remain);
+    lv_label_set_text(soc_gauge_label, buf);
+
   }
   lv_label_set_text(lbl_header, ""); // no header on main screen
   lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN); // disable exit, already at main screen
