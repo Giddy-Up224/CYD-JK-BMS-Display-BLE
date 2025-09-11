@@ -34,6 +34,7 @@
 
 // Global lvgl elements
 lv_obj_t* soc_gauge;
+lv_obj_t* soc_gauge_label;
 
 enum ScreenID {
     SCREEN_MAIN,
@@ -1018,10 +1019,18 @@ void handleUptime() {
 //  return String(buffer);
 //}
 
-static void set_soc_gauge_value(void* soc_gauge_label){
-  for (int i = 0; i < bmsDeviceCount; i++) {
-    JKBMS& bms = jkBmsDevices[i];
-    lv_label_set_text_fmt((lv_obj_t*)soc_gauge_label, "%d%%", bms.Percent_Remain);
+void update_bms_display(){
+  if (soc_gauge && soc_gauge_label) {
+    for (int i = 0; i < bmsDeviceCount; i++) {
+      JKBMS& bms = jkBmsDevices[i];
+      if (bms.connected) {
+        // Update arc value
+        lv_arc_set_value(soc_gauge, bms.Percent_Remain);
+        // Update label text
+        lv_label_set_text_fmt(soc_gauge_label, "%d%%", bms.Percent_Remain);
+        break; // Use first connected BMS
+      }
+    }
   }
 }
 
@@ -1288,13 +1297,18 @@ void go_main(){
     lv_arc_set_rotation(soc_gauge, 135);
     lv_arc_set_bg_angles(soc_gauge, 0, 270);
 
-    JKBMS& bms = jkBmsDevices[0];
-    char buf[10];
-    lv_arc_set_value(soc_gauge, bms.Percent_Remain);
-    lv_obj_t* soc_gauge_label = lv_label_create(soc_gauge); // May need to change the parent to scr_main
+    // Create label for percentage text (centered in the arc)
+    soc_gauge_label = lv_label_create(scr_main);
     lv_obj_set_style_text_font(soc_gauge_label, &lv_font_montserrat_28, LV_PART_MAIN);
-    snprintf(buf, sizeof(buf), "%d%%", bms.Percent_Remain);
-    lv_label_set_text(soc_gauge_label, buf);
+    lv_obj_set_style_text_color(soc_gauge_label, lv_color_black(), LV_PART_MAIN);
+    lv_label_set_text(soc_gauge_label, "0%");
+    lv_obj_align_to(soc_gauge_label, soc_gauge, LV_ALIGN_CENTER, 0, 0);
+    
+    // Position the arc on the screen
+    lv_obj_align(soc_gauge, LV_ALIGN_CENTER, 0, 0);
+    
+    // Initialize display with current BMS data
+    update_bms_display();
 
   }
   lv_label_set_text(lbl_header, ""); // no header on main screen
@@ -1398,6 +1412,13 @@ void loop() {
   lv_task_handler();
   calculateUptime();
   monitorFreeHeap();
+  
+  // Update BMS display (only update every 1000ms to avoid excessive refreshing)
+  static unsigned long lastDisplayUpdate = 0;
+  if (millis() - lastDisplayUpdate >= 1000) {
+    update_bms_display();
+    lastDisplayUpdate = millis();
+  }
 
   //server.handleClient();
   // Connection management
