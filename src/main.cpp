@@ -1313,12 +1313,12 @@ void go_main(){
     // Position the arc on screen first
     lv_obj_align(soc_gauge, LV_ALIGN_CENTER, 0, 0);
 
-    // Create label for percentage text (centered in the arc)
-    soc_gauge_label = lv_label_create(scr_main);
+    // Create label for percentage text (as child of arc - will be centered automatically)
+    soc_gauge_label = lv_label_create(soc_gauge);
     lv_obj_set_style_text_font(soc_gauge_label, &lv_font_montserrat_28, LV_PART_MAIN);
     lv_obj_set_style_text_color(soc_gauge_label, lv_color_black(), LV_PART_MAIN);
     lv_label_set_text(soc_gauge_label, "0%");
-    lv_obj_align_to(soc_gauge_label, soc_gauge, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_center(soc_gauge_label);
     
     // Initialize display with current BMS data
     update_bms_display();
