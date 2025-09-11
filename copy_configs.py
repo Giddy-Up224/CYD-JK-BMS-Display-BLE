@@ -1,6 +1,8 @@
 # This is a script to copy custom configuration files for TFT_eSPI and LVGL
 # into the appropriate library directories before the build process. 
 # (Because they MUST be in correct location at build time)
+# It is called from PlatformIO automatically. It is defined in platformio.ini as:
+# extra_scripts = copy_configs.py
 
 import shutil
 import os
