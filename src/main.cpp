@@ -835,7 +835,7 @@ void handleUptime() {
 //  serializeJson(doc, jsonResponse);
 //  server.send(200, "application/json", jsonResponse);
 }
-//
+
 //void fileserverSetup() {
 //  server.on("/fs", HTTP_GET, handleFileList);
 //  server.on("/upload", HTTP_POST, sendResponce, handleFileUpload);
@@ -843,7 +843,7 @@ void handleUptime() {
 //  server.on("/view", HTTP_GET, handleFileView);
 //  server.on("/format", HTTP_GET, handleFormat);
 //}
-//
+
 //void handleFileList() {
 //  String files;
 //  File root = LittleFS.open("/");
@@ -894,7 +894,7 @@ void handleUptime() {
 //
 //  server.send(200, "text/html", html);
 //}
-//
+
 //void handleFileUpload() {
 //  if (server.uri() != "/upload") return;
 //  HTTPUpload& upload = server.upload();
@@ -927,7 +927,7 @@ void handleUptime() {
 //    }
 //  }
 //}
-//
+
 //void handleFileDelete() {
 //  String filename = server.arg("file");
 //  DEBUG_PRINTLN("Delete: " + filename);
@@ -939,7 +939,7 @@ void handleUptime() {
 //  }
 //  sendResponce();
 //}
-//
+
 //void handleFileView() {
 //  String filename = server.arg("file");
 //  DEBUG_PRINTLN("View: " + filename);
@@ -961,7 +961,7 @@ void handleUptime() {
 //  String html = "<html><body><h2>File Viewer</h2><p>Content of " + filename + ":</p><pre>" + content + "</pre></body></html>";
 //  server.send(200, "text/html", html);
 //}
-//
+
 //void handleFormat() {
 //  LittleFS.format();
 //  DEBUG_PRINTLN(F("Formating LittleFS"));
