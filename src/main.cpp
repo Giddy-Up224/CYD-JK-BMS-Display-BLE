@@ -1021,6 +1021,7 @@ void handleUptime() {
 
 void update_bms_display(){
   if (soc_gauge && soc_gauge_label) {
+    bool connected = false;
     for (int i = 0; i < bmsDeviceCount; i++) {
       JKBMS& bms = jkBmsDevices[i];
       if (bms.connected) {
@@ -1028,8 +1029,15 @@ void update_bms_display(){
         lv_arc_set_value(soc_gauge, bms.Percent_Remain);
         // Update label text
         lv_label_set_text_fmt(soc_gauge_label, "%d%%", bms.Percent_Remain);
+        connected = true;
         break; // Use first connected BMS
       }
+    }
+    
+    // If no BMS connected, show 0%
+    if (!connected) {
+      lv_arc_set_value(soc_gauge, 0);
+      lv_label_set_text(soc_gauge_label, "0%");
     }
   }
 }
