@@ -30,6 +30,38 @@
 #define DEBUG_PRINTLN(...)
 #define DEBUG_PRINTF(...)
 #endif
+#define NAVIGATION_STACK_SIZE 8
+
+enum ScreenID {
+    SCREEN_MAIN,
+    SCREEN_SETTINGS,
+    SCREEN_LED,
+    SCREEN_BL,
+    SCREEN_TOUCH,
+    // ... add more as needed
+};
+
+ScreenID nav_stack[NAVIGATION_STACK_SIZE];
+int nav_stack_top = -1;
+
+void nav_push(ScreenID id) {
+  if (nav_stack_top < NAVIGATION_STACK_SIZE - 1) {
+    nav_stack[++nav_stack_top] = id;
+    DEBUG_PRINTF("Pushed to nav stack, new size: %d\n", nav_stack_top + 1);
+  } else {
+    DEBUG_PRINTLN("Navigation stack overflow");
+  }
+}
+
+ScreenID nav_pop() {
+  if (nav_stack_top >= 0) {
+    DEBUG_PRINTF("Popped from nav stack, new size: %d\n", nav_stack_top + 1);
+    return nav_stack[nav_stack_top--];
+  } else {
+    DEBUG_PRINTLN("Navigation stack underflow");
+    return SCREEN_MAIN; // Default screen if stack is empty
+  }
+}
 
 //void handleFileList();
 //void sendResponce();
@@ -1188,6 +1220,7 @@ void go_settings() {
     lv_obj_t * lbl_led = lv_label_create(btn_led);
     lv_label_set_text(lbl_led, "RGB LED color");
     lv_obj_add_event_cb(btn_led, [](lv_event_t * e) -> void {
+      nav_push(ScreenID::SCREEN_SETTINGS);
       go_led();
     }, LV_EVENT_CLICKED, NULL);
 
@@ -1195,6 +1228,7 @@ void go_settings() {
     lv_obj_t * lbl_bl = lv_label_create(btn_bl);
     lv_label_set_text(lbl_bl, "Backlight brightness");
     lv_obj_add_event_cb(btn_bl, [](lv_event_t * e) -> void {
+      nav_push(ScreenID::SCREEN_SETTINGS);
       go_bl();
     }, LV_EVENT_CLICKED, NULL);
 
@@ -1202,6 +1236,7 @@ void go_settings() {
     lv_obj_t * lbl_touch = lv_label_create(btn_touch);
     lv_label_set_text(lbl_touch, "Touch indicator");
     lv_obj_add_event_cb(btn_touch, [](lv_event_t * e) -> void {
+      nav_push(ScreenID::SCREEN_SETTINGS);
       go_touch();
     }, LV_EVENT_CLICKED, NULL);
 
@@ -1215,7 +1250,7 @@ void go_settings() {
   }
 
   lv_label_set_text(lbl_header, "Settings");
-  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);   
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_settings);
 
 }
@@ -1228,6 +1263,7 @@ void go_main(){
     lv_obj_t * go_to_settings_btn = lv_btn_create(scr_main);
     lv_obj_align(go_to_settings_btn, LV_ALIGN_TOP_LEFT, -10, 10);
     lv_obj_add_event_cb(go_to_settings_btn, [](lv_event_t * e) -> void {
+      nav_push(ScreenID::SCREEN_MAIN);
       go_settings();
     }, LV_EVENT_CLICKED, NULL);
 
@@ -1270,7 +1306,16 @@ void setup() {
   lv_obj_set_size(btn_exit, 40, 40);
   lv_obj_align(btn_exit, LV_ALIGN_TOP_RIGHT, 0, 0);
   lv_obj_add_event_cb(btn_exit, [](lv_event_t * e) -> void {
-    go_main();
+    ScreenID prev = nav_pop();
+    switch (prev)
+    {
+      case ScreenID::SCREEN_MAIN: go_main(); break;
+      case ScreenID::SCREEN_SETTINGS: go_settings(); break;
+      case ScreenID::SCREEN_LED: go_led(); break;
+      case ScreenID::SCREEN_BL: go_bl(); break;
+      case ScreenID::SCREEN_TOUCH: go_touch(); break;
+      default: go_main(); break;
+    }
   }, LV_EVENT_CLICKED, NULL);
 
   // holds actual little 'x', lives inside btn_exit
