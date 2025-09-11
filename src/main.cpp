@@ -35,6 +35,8 @@
 // Global lvgl elements
 lv_obj_t* soc_gauge;
 lv_obj_t* soc_gauge_label;
+lv_obj_t* scr_cell_voltages = nullptr;
+lv_obj_t* cell_voltage_table = nullptr;
 
 enum ScreenID {
     SCREEN_MAIN,
@@ -42,6 +44,7 @@ enum ScreenID {
     SCREEN_LED,
     SCREEN_BL,
     SCREEN_TOUCH,
+    SCREEN_CELL_VOLTAGES,
     // ... add more as needed
 };
 
@@ -1020,24 +1023,39 @@ void handleUptime() {
 //}
 
 void update_bms_display(){
-  if (soc_gauge && soc_gauge_label) {
-    bool connected = false;
-    for (int i = 0; i < bmsDeviceCount; i++) {
-      JKBMS& bms = jkBmsDevices[i];
-      if (bms.connected) {
-        // Update arc value
-        lv_arc_set_value(soc_gauge, bms.Percent_Remain);
-        // Update label text
-        lv_label_set_text_fmt(soc_gauge_label, "%d%%", bms.Percent_Remain);
-        connected = true;
-        break; // Use first connected BMS
-      }
+  bool connected = false;
+  JKBMS* connectedBMS = nullptr;
+  
+  // Find first connected BMS
+  for (int i = 0; i < bmsDeviceCount; i++) {
+    if (jkBmsDevices[i].connected) {
+      connected = true;
+      connectedBMS = &jkBmsDevices[i];
+      break;
     }
-    
-    // If no BMS connected, show 0%
-    if (!connected) {
+  }
+  
+  // Update SOC gauge
+  if (soc_gauge && soc_gauge_label) {
+    if (connected) {
+      lv_arc_set_value(soc_gauge, connectedBMS->Percent_Remain);
+      lv_label_set_text_fmt(soc_gauge_label, "%d%%", connectedBMS->Percent_Remain);
+    } else {
       lv_arc_set_value(soc_gauge, 0);
       lv_label_set_text(soc_gauge_label, "0%");
+    }
+  }
+  
+  // Update cell voltage table
+  if (cell_voltage_table) {
+    if (connected) {
+      for (int i = 0; i < 16; i++) {
+        lv_table_set_cell_value_fmt(cell_voltage_table, i + 1, 1, "%.3f", connectedBMS->cellVoltage[i]);
+      }
+    } else {
+      for (int i = 0; i < 16; i++) {
+        lv_table_set_cell_value(cell_voltage_table, i + 1, 1, "0.000");
+      }
     }
   }
 }
@@ -1283,6 +1301,54 @@ void go_settings() {
 
 }
 
+void go_cell_voltages() {
+  if (!scr_cell_voltages) {
+    scr_cell_voltages = lv_obj_create(NULL);
+    lv_obj_set_style_bg_opa(scr_cell_voltages, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scr_cell_voltages, 0, 0);
+    lv_obj_set_size(scr_cell_voltages, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+    
+    // Create scrollable container
+    lv_obj_t* scroll_container = lv_obj_create(scr_cell_voltages);
+    lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
+    lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scroll_container, 0, 0);
+    
+    // Create table for cell voltages
+    cell_voltage_table = lv_table_create(scroll_container);
+    lv_obj_set_size(cell_voltage_table, lv_pct(100), LV_SIZE_CONTENT);
+    
+    // Set table properties
+    lv_table_set_column_count(cell_voltage_table, 2);
+    lv_table_set_row_count(cell_voltage_table, 17); // Header + 16 cells
+    
+    // Set column widths
+    lv_table_set_column_width(cell_voltage_table, 0, 80);  // Cell number column
+    lv_table_set_column_width(cell_voltage_table, 1, 100); // Voltage column
+    
+    // Set header row
+    lv_table_set_cell_value(cell_voltage_table, 0, 0, "Cell");
+    lv_table_set_cell_value(cell_voltage_table, 0, 1, "Voltage (V)");
+    
+    // Style the header
+    lv_obj_set_style_bg_color(cell_voltage_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(cell_voltage_table, &lv_font_montserrat_14, LV_PART_ITEMS);
+    
+    // Initialize cells with default values
+    for (int i = 1; i <= 16; i++) {
+      lv_table_set_cell_value_fmt(cell_voltage_table, i, 0, "%d", i);
+      lv_table_set_cell_value(cell_voltage_table, i, 1, "0.000");
+    }
+    
+    lv_obj_align(cell_voltage_table, LV_ALIGN_TOP_MID, 0, 0);
+  }
+  
+  lv_label_set_text(lbl_header, "Cell Voltages");
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_screen_load(scr_cell_voltages);
+}
+
 void go_main(){
   if(!scr_main){
     scr_main = new_screen(NULL);
@@ -1320,6 +1386,19 @@ void go_main(){
     lv_label_set_text(soc_gauge_label, "0%");
     lv_obj_center(soc_gauge_label);
     
+    // Add cell voltages button
+    lv_obj_t * cell_voltages_btn = lv_btn_create(scr_main);
+    lv_obj_set_size(cell_voltages_btn, 120, 40);
+    lv_obj_align(cell_voltages_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
+    lv_obj_add_event_cb(cell_voltages_btn, [](lv_event_t * e) -> void {
+      nav_push(ScreenID::SCREEN_MAIN);
+      go_cell_voltages();
+    }, LV_EVENT_CLICKED, NULL);
+    
+    lv_obj_t * cell_voltages_btn_label = lv_label_create(cell_voltages_btn);
+    lv_label_set_text(cell_voltages_btn_label, "Cell Voltages");
+    lv_obj_center(cell_voltages_btn_label);
+
     // Initialize display with current BMS data
     update_bms_display();
 
@@ -1367,6 +1446,7 @@ void setup() {
       case ScreenID::SCREEN_LED: go_led(); break;
       case ScreenID::SCREEN_BL: go_bl(); break;
       case ScreenID::SCREEN_TOUCH: go_touch(); break;
+      case ScreenID::SCREEN_CELL_VOLTAGES: go_cell_voltages(); break;
       default: go_main(); break;
     }
   }, LV_EVENT_CLICKED, NULL);
