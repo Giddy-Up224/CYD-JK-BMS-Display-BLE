@@ -37,6 +37,7 @@ lv_obj_t* soc_gauge;
 lv_obj_t* soc_gauge_label;
 lv_obj_t* scr_cell_voltages = nullptr;
 lv_obj_t* cell_voltage_table = nullptr;
+lv_obj_t* delta_voltages_table = nullptr;
 
 enum ScreenID {
     SCREEN_MAIN,
@@ -1045,6 +1046,31 @@ void update_bms_display(){
       lv_label_set_text(soc_gauge_label, "0%");
     }
   }
+
+  // update delta voltage table
+  if (delta_voltages_table) {
+    if (connected) {
+      float high = -1000.0f, low = 1000.0f;
+      int high_idx = -1, low_idx = -1;
+      for (int i = 0; i < connectedBMS->cell_count; i++) {
+          float v = connectedBMS->cellVoltage[i];
+          if (v > high) { high = v; high_idx = i; }
+          if (v < low)  { low = v;  low_idx = i; }
+      }
+
+      lv_table_set_cell_value_fmt(delta_voltages_table, 1, 1, "%.3f", high);
+      lv_table_set_cell_value_fmt(delta_voltages_table, 1, 2, "%d", high_idx + 1); // cell numbers are 1-based
+      lv_table_set_cell_value_fmt(delta_voltages_table, 2, 1, "%.3f", low);
+      lv_table_set_cell_value_fmt(delta_voltages_table, 2, 2, "%d", low_idx + 1);
+      lv_table_set_cell_value_fmt(delta_voltages_table, 3, 1, "%.3f", connectedBMS->Delta_Cell_Voltage);
+      lv_table_set_cell_value_fmt(delta_voltages_table, 4, 1, "%.3f", connectedBMS->Average_Cell_Voltage);
+    } else {
+      lv_table_set_cell_value(delta_voltages_table, 1, 1, "0.00");
+      lv_table_set_cell_value(delta_voltages_table, 2, 1, "0.00");
+      lv_table_set_cell_value(delta_voltages_table, 3, 1, "0.00");
+      lv_table_set_cell_value(delta_voltages_table, 4, 1, "0.00");
+    }
+  }
   
   // Update cell voltage table
   if (cell_voltage_table) {
@@ -1314,10 +1340,51 @@ void go_cell_voltages() {
     lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(scroll_container, 0, 0);
+    lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
+
+    // Create table for high/low voltages
+    delta_voltages_table = lv_table_create(scroll_container);
+    lv_obj_set_size(delta_voltages_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+
+    int num_rows = 5; // Header + 4 rows
+    int num_cols = 3; // Description, Voltage, Cell#
+
+    // Set table properties
+    lv_table_set_column_count(delta_voltages_table, num_cols);
+    lv_table_set_row_count(delta_voltages_table, num_rows);
+
+    // Set column widths
+    lv_table_set_column_width(delta_voltages_table, 0, 100);
+    lv_table_set_column_width(delta_voltages_table, 1, 100);
+    lv_table_set_column_width(delta_voltages_table, 2, 100);
+
+    // Set header row
+    lv_table_set_cell_value(delta_voltages_table, 0, 1, "Voltage");
+    lv_table_set_cell_value(delta_voltages_table, 0, 2, "Cell#");
+
+    // Set data rows
+    lv_table_set_cell_value(delta_voltages_table, 1, 0, "High_V");
+    lv_table_set_cell_value(delta_voltages_table, 2, 0, "Low_V");
+    lv_table_set_cell_value(delta_voltages_table, 3, 0, "Delta_V");
+    lv_table_set_cell_value(delta_voltages_table, 4, 0, "Avg_V");
+
+
+    // Style the header
+    lv_obj_set_style_bg_color(delta_voltages_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(delta_voltages_table, &lv_font_montserrat_14, LV_PART_ITEMS);
+
+    // Initialize table cells with default values 
+    for(int r =1; r < num_rows; r++) {
+      lv_table_set_cell_value(delta_voltages_table, r, 1, "-");
+      lv_table_set_cell_value(delta_voltages_table, r, 2, "-");
+    }
+
     
     // Create table for cell voltages
     cell_voltage_table = lv_table_create(scroll_container);
-    lv_obj_set_size(cell_voltage_table, lv_pct(100), LV_SIZE_CONTENT);
+    //lv_obj_set_size(cell_voltage_table, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_size(cell_voltage_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     
     // Set table properties
     lv_table_set_column_count(cell_voltage_table, 2);
@@ -1341,7 +1408,6 @@ void go_cell_voltages() {
       lv_table_set_cell_value(cell_voltage_table, i, 1, "0.000");
     }
     
-    lv_obj_align(cell_voltage_table, LV_ALIGN_TOP_MID, 0, 0);
   }
   
   lv_label_set_text(lbl_header, "Cell Voltages");
