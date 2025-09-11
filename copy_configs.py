@@ -1,3 +1,7 @@
+# This is a script to copy custom configuration files for TFT_eSPI and LVGL
+# into the appropriate library directories before the build process. 
+# (Because they MUST be in correct location at build time)
+
 import shutil
 import os
 
