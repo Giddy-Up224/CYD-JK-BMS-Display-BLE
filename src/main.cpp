@@ -1000,6 +1000,7 @@ lv_obj_t * new_screen(lv_obj_t * parent) {
 }
 
 lv_obj_t * scr_main = nullptr;
+lv_obj_t * scr_settings = nullptr;
 lv_obj_t * btn_exit = nullptr;
 lv_obj_t * lbl_header = nullptr;
 lv_obj_t * scr_led;
@@ -1176,35 +1177,35 @@ void go_rotate() {
 
 }
 
-void go_main() {
-  if (!scr_main) {
+void go_settings() {
+  if (!scr_settings) {
     // if screen doesn't exist yet, create it and its children
-    scr_main = new_screen(NULL);
+    scr_settings = new_screen(NULL);
 
-    lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+    lv_obj_set_size(scr_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    lv_obj_t * btn_led = lv_button_create(scr_main);
+    lv_obj_t * btn_led = lv_button_create(scr_settings);
     lv_obj_t * lbl_led = lv_label_create(btn_led);
     lv_label_set_text(lbl_led, "RGB LED color");
     lv_obj_add_event_cb(btn_led, [](lv_event_t * e) -> void {
       go_led();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t * btn_bl = lv_button_create(scr_main);
+    lv_obj_t * btn_bl = lv_button_create(scr_settings);
     lv_obj_t * lbl_bl = lv_label_create(btn_bl);
     lv_label_set_text(lbl_bl, "Backlight brightness");
     lv_obj_add_event_cb(btn_bl, [](lv_event_t * e) -> void {
       go_bl();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t * btn_touch = lv_button_create(scr_main);
+    lv_obj_t * btn_touch = lv_button_create(scr_settings);
     lv_obj_t * lbl_touch = lv_label_create(btn_touch);
     lv_label_set_text(lbl_touch, "Touch indicator");
     lv_obj_add_event_cb(btn_touch, [](lv_event_t * e) -> void {
       go_touch();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t * btn_rotate = lv_button_create(scr_main);
+    lv_obj_t * btn_rotate = lv_button_create(scr_settings);
     lv_obj_t * lbl_rotate = lv_label_create(btn_rotate);
     lv_label_set_text(lbl_rotate, "Rotate display");
     lv_obj_add_event_cb(btn_rotate, [](lv_event_t * e) -> void {
@@ -1213,10 +1214,30 @@ void go_main() {
   
   }
 
-  lv_label_set_text(lbl_header, "LVGL_CYD demo");   // screen header
-  lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);    // disable exit, already at main screen
-  lv_screen_load(scr_main);                         // Tell LVGL to load as active screen
+  lv_label_set_text(lbl_header, "Settings");
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);   
+  lv_screen_load(scr_settings);
 
+}
+
+void go_main(){
+  if(!scr_main){
+    scr_main = new_screen(NULL);
+    lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    lv_obj_t * go_to_settings_btn = lv_btn_create(scr_main);
+    lv_obj_align(go_to_settings_btn, LV_ALIGN_TOP_LEFT, -10, 10);
+    lv_obj_add_event_cb(go_to_settings_btn, [](lv_event_t * e) -> void {
+      go_settings();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t * go_to_settings_btn_label = lv_label_create(go_to_settings_btn);
+    lv_label_set_text(go_to_settings_btn_label, LV_SYMBOL_SETTINGS);
+    lv_obj_align_to(go_to_settings_btn_label, go_to_settings_btn, LV_ALIGN_CENTER, 0, 0);
+  }
+  lv_label_set_text(lbl_header, ""); // no header on main screen
+  lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN); // disable exit, already at main screen
+  lv_screen_load(scr_main);
 }
 
 
