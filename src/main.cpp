@@ -148,6 +148,7 @@ String getSketchInfo() {
 //  String jsonResponse;
 //  serializeJson(doc, jsonResponse);
 //  return jsonResponse;
+  return compileDate, compileTime, sketchName, coreVersion;
 }
 
 String formatUptime(uint32_t totalSeconds) {
