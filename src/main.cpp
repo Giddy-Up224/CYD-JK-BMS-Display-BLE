@@ -1304,6 +1304,11 @@ void go_main(){
     lv_obj_set_size(soc_gauge, 150, 150);
     lv_arc_set_rotation(soc_gauge, 135);
     lv_arc_set_bg_angles(soc_gauge, 0, 270);
+    
+    // Make arc read-only (remove knob and disable interaction)
+    lv_obj_clear_flag(soc_gauge, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_opa(soc_gauge, LV_OPA_TRANSP, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(soc_gauge, 0, LV_PART_KNOB);
 
     // Create label for percentage text (centered in the arc)
     soc_gauge_label = lv_label_create(scr_main);
