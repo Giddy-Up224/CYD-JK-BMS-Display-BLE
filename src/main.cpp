@@ -7,6 +7,10 @@
 #include <LVGL_CYD.h>
 
 // TODO:
+// Bugfixes:
+// Fix navigation not working as intended
+// Fix btn_exit not showing on scr_more
+// Features:
 // - Add Preferences lib to create persistent settings
 // - Show current device name on the SOC screen 
 // - Add ability to select available devices rather than hard-coding the MAC address
