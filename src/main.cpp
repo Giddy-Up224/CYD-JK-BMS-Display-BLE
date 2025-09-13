@@ -60,7 +60,7 @@ int nav_stack_top = -1;
 void nav_push(ScreenID id) {
   if (nav_stack_top < NAVIGATION_STACK_SIZE - 1) {
     nav_stack[++nav_stack_top] = id;
-    DEBUG_PRINTF("Pushed to nav stack, new size: %d\n", nav_stack_top + 1);
+    DEBUG_PRINTF("Pushed %d to nav stack, new size: %d\n", id, nav_stack_top + 1);
   } else {
     DEBUG_PRINTLN("Navigation stack overflow");
   }
