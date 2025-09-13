@@ -8,6 +8,9 @@
 
 // TODO:
 // - Add Preferences lib to create persistent settings
+// - Show current device name on the SOC screen 
+// - Add ability to select available devices rather than hard-coding the MAC address
+// - Add ability to show multiple devices by scrolling through main screen
 
 
 /* Takes position of USB connector relative to screen. These are synonyms
