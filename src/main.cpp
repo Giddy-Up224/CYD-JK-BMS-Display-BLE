@@ -1366,14 +1366,14 @@ void go_wire_resistances() {
     lv_table_set_column_width(res_high_low_avg_table, 2, 100);
 
     // Set header row
-    lv_table_set_cell_value(res_high_low_avg_table, 0, 1, "Res.(Ω)");
+    lv_table_set_cell_value(res_high_low_avg_table, 0, 1, "Res.");
     lv_table_set_cell_value(res_high_low_avg_table, 0, 2, "Cell#");
 
     // Set data rows
-    lv_table_set_cell_value(res_high_low_avg_table, 1, 0, "High_Ω");
-    lv_table_set_cell_value(res_high_low_avg_table, 2, 0, "Low_Ω");
-    lv_table_set_cell_value(res_high_low_avg_table, 3, 0, "Delta_Ω");
-    lv_table_set_cell_value(res_high_low_avg_table, 4, 0, "Avg_Ω");
+    lv_table_set_cell_value(res_high_low_avg_table, 1, 0, "High_Res.");
+    lv_table_set_cell_value(res_high_low_avg_table, 2, 0, "Low_Res.");
+    lv_table_set_cell_value(res_high_low_avg_table, 3, 0, "Delta_Res.");
+    lv_table_set_cell_value(res_high_low_avg_table, 4, 0, "Avg_Res.");
 
 
     // Style the header
@@ -1402,7 +1402,7 @@ void go_wire_resistances() {
     
     // Set header row
     lv_table_set_cell_value(wire_res_table, 0, 0, "Cell");
-    lv_table_set_cell_value(wire_res_table, 0, 1, "Res.(Ω)");
+    lv_table_set_cell_value(wire_res_table, 0, 1, "Res.");
     
     // Style the header
     lv_obj_set_style_bg_color(wire_res_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
@@ -1537,7 +1537,7 @@ void go_more(){
         go_wire_resistances(); }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *wire_res_button_label = lv_label_create(wire_res_button);
-    lv_label_set_text(wire_res_button_label, "Wire Res.(Ω)");
+    lv_label_set_text(wire_res_button_label, "Wire Res.");
     lv_obj_center(wire_res_button_label);
 
     // Settings
