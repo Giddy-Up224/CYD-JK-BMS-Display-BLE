@@ -1070,10 +1070,10 @@ void update_bms_display(){
       lv_table_set_cell_value_fmt(delta_voltages_table, 3, 1, "%.3f", connectedBMS->Delta_Cell_Voltage);
       lv_table_set_cell_value_fmt(delta_voltages_table, 4, 1, "%.3f", connectedBMS->Average_Cell_Voltage);
     } else {
-      lv_table_set_cell_value(delta_voltages_table, 1, 1, "0.00");
-      lv_table_set_cell_value(delta_voltages_table, 2, 1, "0.00");
-      lv_table_set_cell_value(delta_voltages_table, 3, 1, "0.00");
-      lv_table_set_cell_value(delta_voltages_table, 4, 1, "0.00");
+      lv_table_set_cell_value(delta_voltages_table, 1, 1, "-");
+      lv_table_set_cell_value(delta_voltages_table, 2, 1, "-");
+      lv_table_set_cell_value(delta_voltages_table, 3, 1, "-");
+      lv_table_set_cell_value(delta_voltages_table, 4, 1, "-");
     }
   }
   
