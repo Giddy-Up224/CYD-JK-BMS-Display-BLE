@@ -1089,6 +1089,49 @@ void update_bms_display(){
       }
     }
   }
+
+  // update wire resistance high/low/average table
+  if (res_high_low_avg_table) {
+    if (connected) {
+      float high = -1000.0f, low = 1000.0f;
+      int high_idx = -1, low_idx = -1;
+      float sum_res = 0;
+      float avg_res = 0;
+      for (int i = 0; i < connectedBMS->cell_count; i++) {
+          float res = connectedBMS->wireResist[i];
+          if (res > high) { high = res; high_idx = i; }
+          if (res < low)  { low = res;  low_idx = i; }
+          sum_res += res;
+      }
+      // Get average resistance
+      avg_res = sum_res/connectedBMS->cell_count;
+
+      lv_table_set_cell_value_fmt(res_high_low_avg_table, 1, 1, "%.3f", high);
+      lv_table_set_cell_value_fmt(res_high_low_avg_table, 1, 2, "%d", high_idx + 1); // cell numbers are 1-based
+      lv_table_set_cell_value_fmt(res_high_low_avg_table, 2, 1, "%.3f", low);
+      lv_table_set_cell_value_fmt(res_high_low_avg_table, 2, 2, "%d", low_idx + 1);
+      lv_table_set_cell_value_fmt(res_high_low_avg_table, 3, 1, "%.3f", high - low);
+      lv_table_set_cell_value_fmt(res_high_low_avg_table, 4, 1, "%.3f", avg_res);
+    } else {
+      lv_table_set_cell_value(res_high_low_avg_table, 1, 1, "-");
+      lv_table_set_cell_value(res_high_low_avg_table, 2, 1, "-");
+      lv_table_set_cell_value(res_high_low_avg_table, 3, 1, "-");
+      lv_table_set_cell_value(res_high_low_avg_table, 4, 1, "-");
+    }
+  }
+  
+  // Update wire risistance table
+  if (wire_res_table) {
+    if (connected) {
+      for (int i = 0; i < 16; i++) {
+        lv_table_set_cell_value_fmt(wire_res_table, i + 1, 1, "%.3f", connectedBMS->wireResist[i]);
+      }
+    } else {
+      for (int i = 0; i < 16; i++) {
+        lv_table_set_cell_value(wire_res_table, i + 1, 1, "-");
+      }
+    }
+  }
 }
 
 // creates a new obj to use as base screen, and set some properties, such as flex
