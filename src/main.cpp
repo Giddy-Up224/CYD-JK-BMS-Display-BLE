@@ -1333,7 +1333,7 @@ void go_settings() {
 
 }
 
-void go_cell_resistances() {
+void go_wire_resistances() {
   if (!scr_cell_resistances) {
     scr_cell_resistances = lv_obj_create(NULL);
     lv_obj_set_style_bg_opa(scr_cell_resistances, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -1527,6 +1527,19 @@ void go_more(){
     lv_label_set_text(cell_voltages_btn_label, "Cell Voltages");
     lv_obj_center(cell_voltages_btn_label);
 
+    // Add wire resistances button
+    lv_obj_t* wire_res_button = lv_btn_create(scr_more);
+    lv_obj_set_size(wire_res_button, 120, 40);
+    lv_obj_align(wire_res_button, LV_ALIGN_BOTTOM_MID, 0, -20);
+    lv_obj_add_event_cb(wire_res_button, [](lv_event_t *e) -> void
+                        {
+        nav_push(ScreenID::SCREEN_MORE);
+        go_wire_resistances(); }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *wire_res_button_label = lv_label_create(wire_res_button);
+    lv_label_set_text(wire_res_button_label, "Wire Res.(Ω)");
+    lv_obj_center(wire_res_button_label);
+
     // Settings
     lv_obj_t * go_to_settings_btn = lv_btn_create(scr_more);
     lv_obj_align(go_to_settings_btn, LV_ALIGN_TOP_LEFT, -10, 10);
@@ -1629,8 +1642,8 @@ void setup() {
       case ScreenID::SCREEN_BL:               go_bl();                DEBUG_PRINTLN("going to scr_bl");               break;
       case ScreenID::SCREEN_TOUCH:            go_touch();             DEBUG_PRINTLN("going to scr_touch");            break;
       case ScreenID::SCREEN_CELL_VOLTAGES:    go_cell_voltages();     DEBUG_PRINTLN("going to scr_cell_voltages");    break;
-      case ScreenID::SCREEN_CELL_RESISTANCES: go_cell_resistances();  DEBUG_PRINTLN("going to scr_cell_resistances"); break;
-      default:                                go_main();              DEBUG_PRINTLN("defaulting to scr_main!");       break;
+      case ScreenID::SCREEN_CELL_RESISTANCES: go_wire_resistances();  DEBUG_PRINTLN("going to scr_cell_resistances"); break;
+      default:                                go_main();              DEBUG_PRINTF("%d not found! Defaulting to scr_main...", prev);       break;
     }
   }, LV_EVENT_CLICKED, NULL);
 
