@@ -6,6 +6,9 @@
 //#include <ArduinoJson.h>
 #include <LVGL_CYD.h>
 
+// TODO:
+// - Add Preferences lib to create persistent settings
+
 
 /* Takes position of USB connector relative to screen. These are synonyms
    as defined in LVGL_CYD.h:
@@ -305,7 +308,6 @@ private:
 // Global Variables and Callbacks
 //********************************************
 JKBMS jkBmsDevices[] = {
-  // TODO: Change to my MAC
   JKBMS("c8:47:80:23:4f:95"),  // Only one device configured
   // JKBMS("20:aa:08:25:26:8b"),    // Add more devices here
   // JKBMS("MAC_ADDRESS_3")
@@ -1151,6 +1153,7 @@ lv_obj_t * new_screen(lv_obj_t * parent) {
   return obj;
 }
 
+// Global lvgl variables
 lv_obj_t * scr_main = nullptr;
 lv_obj_t * scr_more = nullptr;
 lv_obj_t * scr_settings = nullptr;
@@ -1225,18 +1228,18 @@ void go_led() {
 // LBacklight brightness screen
 //
 
-lv_obj_t * scr_bl;
+lv_obj_t * scr_backlight;
 
 // These need to be global as they are referenced in the callback.
 lv_obj_t * slider_bl;
 
 
-void go_bl() {
+void go_backlight() {
 
-  if (!scr_bl) {
-    scr_bl = new_screen(NULL);
+  if (!scr_backlight) {
+    scr_backlight = new_screen(NULL);
 
-    slider_bl = lv_slider_create(scr_bl);
+    slider_bl = lv_slider_create(scr_backlight);
     lv_obj_set_width(slider_bl, lv_pct(80));
     lv_slider_set_range(slider_bl, 0, 255);
     lv_obj_add_event_cb(slider_bl, [](lv_event_t * e) -> void {
@@ -1252,7 +1255,7 @@ void go_bl() {
 
   lv_label_set_text(lbl_header, "Backlight brightness");
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-  lv_screen_load(scr_bl);
+  lv_screen_load(scr_backlight);
 
 }
 
@@ -1350,7 +1353,7 @@ void go_settings() {
     lv_label_set_text(lbl_bl, "Backlight brightness");
     lv_obj_add_event_cb(btn_bl, [](lv_event_t * e) -> void {
       nav_push(ScreenID::SCREEN_SETTINGS);
-      go_bl();
+      go_backlight();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * btn_touch = lv_button_create(scr_settings);
@@ -1682,7 +1685,7 @@ void setup() {
       case ScreenID::SCREEN_MAIN:             go_main();              DEBUG_PRINTLN("going to scr_main");             break;
       case ScreenID::SCREEN_SETTINGS:         go_settings();          DEBUG_PRINTLN("going to scr_settings");         break;
       case ScreenID::SCREEN_LED:              go_led();               DEBUG_PRINTLN("going to scr_led");              break;
-      case ScreenID::SCREEN_BL:               go_bl();                DEBUG_PRINTLN("going to scr_bl");               break;
+      case ScreenID::SCREEN_BL:               go_backlight();                DEBUG_PRINTLN("going to scr_bl");               break;
       case ScreenID::SCREEN_TOUCH:            go_touch();             DEBUG_PRINTLN("going to scr_touch");            break;
       case ScreenID::SCREEN_CELL_VOLTAGES:    go_cell_voltages();     DEBUG_PRINTLN("going to scr_cell_voltages");    break;
       case ScreenID::SCREEN_CELL_RESISTANCES: go_wire_resistances();  DEBUG_PRINTLN("going to scr_cell_resistances"); break;
