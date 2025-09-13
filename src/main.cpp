@@ -45,8 +45,8 @@
 // Global lvgl elements
 lv_obj_t* soc_gauge;
 lv_obj_t* soc_gauge_label;
-lv_obj_t* battery_current;
-lv_obj_t* battery_voltage_label;
+lv_obj_t* battery_current_label;
+lv_obj_t* battery_voltage_and_current_label;
 lv_obj_t* scr_cell_resistances = nullptr;
 lv_obj_t* scr_cell_voltages = nullptr;
 lv_obj_t* cell_voltage_table = nullptr;
@@ -56,6 +56,7 @@ lv_obj_t* res_high_low_avg_table = nullptr;
 
 // Global variables for lvgl components
 float battery_voltage;
+float battery_current;
 
 enum ScreenID {
     SCREEN_MAIN,
@@ -1066,13 +1067,14 @@ void update_bms_display(){
     }
   }
 
-  // update voltage on main screen
-  if(battery_voltage_label) {
+  // update voltage and current on main screen
+  if(battery_voltage_and_current_label) {
     if(connected) {
       battery_voltage = connectedBMS->Battery_Voltage;
-      lv_label_set_text_fmt(battery_voltage_label, "V: %.2f", battery_voltage);
+      battery_current = connectedBMS->Charge_Current;
+      lv_label_set_text_fmt(battery_voltage_and_current_label, "V: %.2f   A: %.3f", battery_voltage, battery_current);
     } else {
-      lv_label_set_text(battery_voltage_label, "V: --.--");
+      lv_label_set_text(battery_voltage_and_current_label, "V: --.--   A: ---.---");
     }
   }
 
@@ -1663,18 +1665,11 @@ void go_main(){
     lv_obj_center(soc_gauge_label);
 
     // display battery voltage
-    battery_voltage_label = lv_label_create(scr_main);
-    lv_obj_set_style_text_font(battery_voltage_label, &lv_font_montserrat_18, LV_PART_MAIN);
-    lv_obj_set_style_text_color(battery_voltage_label, lv_color_black(), LV_PART_MAIN);
-    lv_label_set_text(battery_voltage_label, "V: --.--");
-    lv_obj_set_flex_align(battery_voltage_label, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
-
-    // display battery voltage
-    battery_current = lv_label_create(scr_main);
-    lv_obj_set_style_text_font(battery_current, &lv_font_montserrat_18, LV_PART_MAIN);
-    lv_obj_set_style_text_color(battery_current, lv_color_black(), LV_PART_MAIN);
-    lv_label_set_text(battery_current, "---.---");
-    lv_obj_set_flex_align(battery_current, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+    battery_voltage_and_current_label = lv_label_create(scr_main);
+    lv_obj_set_style_text_font(battery_voltage_and_current_label, &lv_font_montserrat_18, LV_PART_MAIN);
+    lv_obj_set_style_text_color(battery_voltage_and_current_label, lv_color_black(), LV_PART_MAIN);
+    lv_label_set_text(battery_voltage_and_current_label, "V: --.--");
+    lv_obj_set_flex_align(battery_voltage_and_current_label, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
 
     // Initialize display with current BMS data
     update_bms_display();
