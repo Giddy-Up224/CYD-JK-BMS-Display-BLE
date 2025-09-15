@@ -1,10 +1,7 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
-//#include <WiFi.h>
-//#include <WebServer.h>
-//#include <LittleFS.h>
-//#include <ArduinoJson.h>
 #include <LVGL_CYD.h>
+#include <Preferences.h>
 
 // TODO:
 // Bugfixes:
