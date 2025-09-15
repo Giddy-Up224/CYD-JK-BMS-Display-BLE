@@ -1,18 +1,8 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 #include <LVGL_CYD.h>
+#include <lvgl.h>
 #include <Preferences.h>
-
-// TODO:
-// Bugfixes:
-//
-// Features:
-// - Add back button on upper left to return to previous screen
-// - Add Preferences lib to create persistent settings
-// - Show current device name on the SOC screen 
-// - Add ability to select available devices rather than hard-coding the MAC address
-// - Add ability to show multiple devices by scrolling through main screen
-
 
 /* Takes position of USB connector relative to screen. These are synonyms
    as defined in LVGL_CYD.h:
