@@ -8,7 +8,7 @@ This project is a modified version of [peff74/Arduino-jk-bms](https://github.com
 
 ⚠️🚧 Work in progress. Use at your own risk!
 
-Next steps:
+Current step:
 - Convert to LVGL instead of the webserver.
 
 
@@ -32,4 +32,4 @@ I had to do the following on Windows to add ```intelhex``` to my PIO venv packag
 
 ## Notes
 
-Works with my JK-B1A8S10P
+Works with my JK-B1A8S10P BMS
