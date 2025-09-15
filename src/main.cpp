@@ -8,9 +8,9 @@
 
 // TODO:
 // Bugfixes:
-// Fix navigation not working as intended
-// Fix btn_exit not showing on scr_more
+//
 // Features:
+// - Add back button on upper left to return to previous screen
 // - Add Preferences lib to create persistent settings
 // - Show current device name on the SOC screen 
 // - Add ability to select available devices rather than hard-coding the MAC address
@@ -1181,6 +1181,7 @@ lv_obj_t * new_screen(lv_obj_t * parent) {
 lv_obj_t * scr_main = nullptr;
 lv_obj_t * scr_more = nullptr;
 lv_obj_t * scr_settings = nullptr;
+lv_obj_t * btn_back = nullptr;
 lv_obj_t * btn_exit = nullptr;
 lv_obj_t * lbl_header = nullptr;
 lv_obj_t * scr_led;
@@ -1243,6 +1244,7 @@ void go_led() {
   }
 
   lv_label_set_text(lbl_header, "RGB LED color");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_led);
 
@@ -1278,6 +1280,7 @@ void go_backlight() {
   }
 
   lv_label_set_text(lbl_header, "Backlight brightness");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_backlight);
 
@@ -1328,6 +1331,7 @@ void go_touch() {
       } else if (lv_event_get_code(e) == LV_EVENT_RELEASED) {
         lv_obj_add_flag(horizontal, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(vertical, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
       }
     }, LV_EVENT_ALL, NULL);
@@ -1335,6 +1339,7 @@ void go_touch() {
 
   lv_obj_add_flag(horizontal, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(vertical, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(lbl_header, "Touch indicator");
   lv_screen_load(scr_touch);
@@ -1398,6 +1403,7 @@ void go_settings() {
   }
 
   lv_label_set_text(lbl_header, "Settings");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_settings);
 
@@ -1487,6 +1493,7 @@ void go_wire_resistances() {
   }
   
   lv_label_set_text(lbl_header, "Wire Resistances");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_cell_resistances);
 }
@@ -1575,6 +1582,7 @@ void go_cell_voltages() {
   }
   
   lv_label_set_text(lbl_header, "Cell Voltages");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_cell_voltages);
 }
@@ -1623,7 +1631,8 @@ void go_more(){
     lv_obj_align_to(go_to_settings_btn_label, go_to_settings_btn, LV_ALIGN_CENTER, 0, 0);
   }
   lv_label_set_text(lbl_header, "");
-  lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_more);
 }
 
@@ -1677,6 +1686,7 @@ void go_main(){
   }
   lv_label_set_text(lbl_header, ""); // no header on main screen
   lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN); // disable exit, already at main screen
+  lv_obj_add_flag(btn_back, LV_OBJ_FLAG_HIDDEN); // disable back, already at main screen
   lv_screen_load(scr_main);
 }
 
@@ -1710,20 +1720,9 @@ void setup() {
   lv_obj_set_size(btn_exit, 40, 40);
   lv_obj_align(btn_exit, LV_ALIGN_TOP_RIGHT, 0, 0);
   lv_obj_add_event_cb(btn_exit, [](lv_event_t * e) -> void {
-    ScreenID prev = nav_pop();
-    switch (prev)
-    {
-      case ScreenID::SCREEN_MAIN:             go_main();              DEBUG_PRINTLN("going to scr_main");             break;
-      case ScreenID::SCREEN_SETTINGS:         go_settings();          DEBUG_PRINTLN("going to scr_settings");         break;
-      case ScreenID::SCREEN_LED:              go_led();               DEBUG_PRINTLN("going to scr_led");              break;
-      case ScreenID::SCREEN_BL:               go_backlight();                DEBUG_PRINTLN("going to scr_bl");               break;
-      case ScreenID::SCREEN_TOUCH:            go_touch();             DEBUG_PRINTLN("going to scr_touch");            break;
-      case ScreenID::SCREEN_CELL_VOLTAGES:    go_cell_voltages();     DEBUG_PRINTLN("going to scr_cell_voltages");    break;
-      case ScreenID::SCREEN_CELL_RESISTANCES: go_wire_resistances();  DEBUG_PRINTLN("going to scr_cell_resistances"); break;
-      default:                                go_main();              DEBUG_PRINTF("%d not found! Defaulting to scr_main...", prev);       break;
-    }
+    go_main();
   }, LV_EVENT_CLICKED, NULL);
-
+  
   // holds actual little 'x', lives inside btn_exit
   lv_obj_t * lbl_exit_symbol = lv_label_create(btn_exit);
   lv_obj_set_style_text_font(lbl_exit_symbol, &lv_font_montserrat_18, LV_PART_MAIN);
@@ -1731,10 +1730,41 @@ void setup() {
   lv_label_set_text(lbl_exit_symbol, LV_SYMBOL_CLOSE);
   lv_obj_align(lbl_exit_symbol, LV_ALIGN_TOP_RIGHT, 5, -10);  
 
+  // back button
+  btn_back = lv_obj_create(lv_layer_top());
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_flag(btn_back, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_set_style_bg_opa(btn_back, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_border_width(btn_back, 0, LV_PART_MAIN);
+  lv_obj_set_size(btn_back, 40, 40);
+  lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 0, 0);
+  lv_obj_add_event_cb(btn_back, [](lv_event_t * e) -> void {
+    ScreenID prev = nav_pop();
+    switch (prev)
+    {
+      case ScreenID::SCREEN_MAIN:             go_main();              DEBUG_PRINTLN("going to scr_main");                             break;
+      case ScreenID::SCREEN_MORE:             go_more();              DEBUG_PRINTLN("going to scr_more");                             break;
+      case ScreenID::SCREEN_SETTINGS:         go_settings();          DEBUG_PRINTLN("going to scr_settings");                         break;
+      case ScreenID::SCREEN_LED:              go_led();               DEBUG_PRINTLN("going to scr_led");                              break;
+      case ScreenID::SCREEN_BL:               go_backlight();         DEBUG_PRINTLN("going to scr_bl");                               break;
+      case ScreenID::SCREEN_TOUCH:            go_touch();             DEBUG_PRINTLN("going to scr_touch");                            break;
+      case ScreenID::SCREEN_CELL_VOLTAGES:    go_cell_voltages();     DEBUG_PRINTLN("going to scr_cell_voltages");                    break;
+      case ScreenID::SCREEN_CELL_RESISTANCES: go_wire_resistances();  DEBUG_PRINTLN("going to scr_cell_resistances");                 break;
+      default:                                go_main();              DEBUG_PRINTF("%d not found! Defaulting to scr_main...", prev);  break;
+    }
+  }, LV_EVENT_CLICKED, NULL);
+
+  // holds actual little '<', lives inside btn_back
+  lv_obj_t * lbl_back_symbol = lv_label_create(btn_back);
+  lv_obj_set_style_text_font(lbl_back_symbol, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_align(lbl_back_symbol, LV_TEXT_ALIGN_CENTER, 0);
+  lv_label_set_text(lbl_back_symbol, LV_SYMBOL_BACKSPACE);
+  lv_obj_align(lbl_back_symbol, LV_ALIGN_TOP_MID, 5, -10);  
+
   // page header
   lbl_header = lv_label_create(lv_layer_top());
   lv_obj_set_style_text_font(lbl_header, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_align(lbl_header, LV_ALIGN_TOP_LEFT, 5, 3);
+  lv_obj_align(lbl_header, LV_ALIGN_TOP_MID, 5, 3);
 
   go_main();
 
