@@ -37,6 +37,7 @@
 #define DEBUG_PRINTLN(...)
 #define DEBUG_PRINTF(...)
 #endif
+// navigation stack size
 #define NAVIGATION_STACK_SIZE 8
 
 // Global lvgl elements
