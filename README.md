@@ -14,6 +14,7 @@ Future Features:
 - List and select available devices
 - Show device name on home screen header
 - Variable screen dimming using onboard LDR (option selectable from settings)
+- Add ability to show multiple devices by scrolling through main screen
 
 
 ## Build Instructions
