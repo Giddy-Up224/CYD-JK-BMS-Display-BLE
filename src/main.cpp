@@ -27,8 +27,8 @@
 #define DEBUG_PRINTLN(...)
 #define DEBUG_PRINTF(...)
 #endif
-// navigation stack size
-#define NAVIGATION_STACK_SIZE 8
+
+Preferences user_settings;
 
 // Global lvgl elements
 lv_obj_t* soc_gauge;
@@ -47,16 +47,19 @@ float battery_voltage;
 float battery_current;
 
 enum ScreenID {
-    SCREEN_MAIN,
-    SCREEN_MORE,
-    SCREEN_SETTINGS,
-    SCREEN_LED,
-    SCREEN_BL,
-    SCREEN_TOUCH,
-    SCREEN_CELL_VOLTAGES,
-    SCREEN_CELL_RESISTANCES
-    // ... add more as needed
+  SCREEN_MAIN,
+  SCREEN_MORE,
+  SCREEN_SETTINGS,
+  SCREEN_LED,
+  SCREEN_BL,
+  SCREEN_TOUCH,
+  SCREEN_CELL_VOLTAGES,
+  SCREEN_CELL_RESISTANCES
+  // ... add more as needed
 };
+
+// navigation stack size
+#define NAVIGATION_STACK_SIZE 8
 
 ScreenID nav_stack[NAVIGATION_STACK_SIZE];
 int nav_stack_top = -1;
