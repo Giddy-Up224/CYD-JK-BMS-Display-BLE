@@ -92,19 +92,6 @@ ScreenID nav_pop() {
   }
 }
 
-//void handleFileList();
-//void sendResponce();
-//void handleFileUpload();
-//void handleFileDelete();
-//void handleFileView();
-//void handleFormat();
-//String getLastModified(File file);
-
-
-// WiFi credentials
-//const char* ssid = "your-ssid";
-//const char* password = "your-password";
-//WebServer server(80);  // Webserver auf Port 80
 
 uint32_t minFreeHeap = UINT32_MAX;
 unsigned long lastHeapUpdate = 0;
@@ -145,13 +132,6 @@ void monitorFreeHeap() {
   }
 }
 
-//void setupLittleFS() {
-//  if (!LittleFS.begin()) {
-//    DEBUG_PRINTLN("LittleFS Mount Failed");
-//    return;
-//  }
-//  DEBUG_PRINTLN("LittleFS Mounted Successfully");
-//}
 
 // lesbare Anzeige der Speichergrößen
 void formatBytes(size_t bytes, char* buffer, size_t bufferSize) {
@@ -198,17 +178,6 @@ String getSketchInfo() {
   // Compilation date and time
   String compileDate = __DATE__;
   String compileTime = __TIME__;
-
-  // Create JSON object
-//  DynamicJsonDocument doc(200);
-//  doc["sketch_name"] = sketchName;
-//  doc["compile_date"] = compileDate;
-//  doc["compile_time"] = compileTime;
-//  doc["esp_core_version"] = coreVersion;
-//
-//  String jsonResponse;
-//  serializeJson(doc, jsonResponse);
-//  return jsonResponse;
   return compileDate, compileTime, sketchName, coreVersion;
 }
 
@@ -717,331 +686,6 @@ void JKBMS::parseData() {
   DEBUG_PRINTF("Balance: %d\n", Balance);
   DEBUG_PRINTF("Balancing Action: %d\n", Balancing_Action);
 }
-
-// TODO: Convert to LVGL (All the way down to line:964 needs to be eliminated or changed.)
-//void handleRoot() {
-//  if (LittleFS.exists("/index.html")) {
-//    server.sendHeader("Location", "/main");
-//    server.send(302, "text/plain", "Umleitung auf /main");
-//  } else {
-//    String redirectPage = "<html><body style='text-align:center;'>";
-//    redirectPage += "<p>index.html wurde nicht gefunden.</p>";
-//    redirectPage += "<p><a href='/fs'>File-Server</a></p>";
-//    redirectPage += "</body></html>";
-//
-//    server.send(200, "text/html", redirectPage);
-//  }
-//}
-
-// TODO: Here are the value fields. Convert to LVGL labels, tables or text areas.
-//void handleJSON() {
-//  const size_t capacity = JSON_OBJECT_SIZE(50) + JSON_ARRAY_SIZE(16) + 2000;  // Ausreichend großer Buffer
-//  DynamicJsonDocument doc(capacity);
-//
-//  for (int i = 0; i < bmsDeviceCount; i++) {
-//    JKBMS& bms = jkBmsDevices[i];
-//    JsonObject device = doc.createNestedObject(bms.targetMAC);
-//
-//    // Allgemeine Informationen
-//    device["battery_voltage"] = bms.Battery_Voltage;
-//    device["battery_power"] = bms.Battery_Power;
-//    device["charge_current"] = bms.Charge_Current;
-//    device["percent_remain"] = bms.Percent_Remain;
-//    device["capacity_remain"] = bms.Capacity_Remain;
-//    device["nominal_capacity"] = bms.Nominal_Capacity;
-//    device["cycle_count"] = bms.Cycle_Count;
-//    device["cycle_capacity"] = bms.Cycle_Capacity;
-//    device["uptime"] = String(bms.days) + "d " + String(bms.hr) + "h " + String(bms.mi) + "m";
-//
-//    // Temperaturen
-//    device["battery_t1"] = bms.Battery_T1;
-//    device["battery_t2"] = bms.Battery_T2;
-//    device["mos_temp"] = bms.MOS_Temp;
-//
-//    // Zellspannungen
-//    JsonArray cell_voltages = device.createNestedArray("cell_voltages");
-//    for (int j = 0; j < bms.cell_count; j++) {
-//      cell_voltages.add(bms.cellVoltage[j]);
-//    }
-//    device["average_cell_voltage"] = bms.Average_Cell_Voltage;
-//    device["delta_cell_voltage"] = bms.Delta_Cell_Voltage;
-//
-//    // Widerstände
-//    JsonArray wire_resist = device.createNestedArray("wire_resist");
-//    for (int j = 0; j < bms.cell_count; j++) {
-//      wire_resist.add(bms.wireResist[j]);
-//    }
-//
-//    // Statusflags
-//    device["charge"] = bms.Charge;
-//    device["discharge"] = bms.Discharge;
-//    device["balance"] = bms.Balance;
-//    device["balancing_action"] = bms.Balancing_Action;
-//    device["balance_curr"] = bms.Balance_Curr;
-//
-//    // BMS Einstellungen
-//    device["cell_count"] = bms.cell_count;
-//    device["total_battery_capacity"] = bms.total_battery_capacity;
-//    device["balance_trigger_voltage"] = bms.balance_trigger_voltage;
-//    device["balance_starting_voltage"] = bms.balance_starting_voltage;
-//    device["max_charge_current"] = bms.max_charge_current;
-//    device["max_discharge_current"] = bms.max_discharge_current;
-//    device["max_balance_current"] = bms.max_balance_current;
-//    device["cell_undervoltage_protection"] = bms.cell_voltage_undervoltage_protection;
-//    device["cell_undervoltage_recovery"] = bms.cell_voltage_undervoltage_recovery;
-//    device["cell_overvoltage_protection"] = bms.cell_voltage_overvoltage_protection;
-//    device["cell_overvoltage_recovery"] = bms.cell_voltage_overvoltage_recovery;
-//    device["power_off_voltage"] = bms.power_off_voltage;
-//    device["charge_overcurrent_protection_delay"] = bms.charge_overcurrent_protection_delay;
-//    device["charge_overcurrent_protection_recovery_time"] = bms.charge_overcurrent_protection_recovery_time;
-//    device["discharge_overcurrent_protection_delay"] = bms.discharge_overcurrent_protection_delay;
-//    device["discharge_overcurrent_protection_recovery_time"] = bms.discharge_overcurrent_protection_recovery_time;
-//    device["short_circuit_protection_recovery_time"] = bms.short_circuit_protection_recovery_time;
-//    device["charge_overtemperature_protection"] = bms.charge_overtemperature_protection;
-//    device["charge_overtemperature_protection_recovery"] = bms.charge_overtemperature_protection_recovery;
-//    device["discharge_overtemperature_protection"] = bms.discharge_overtemperature_protection;
-//    device["discharge_overtemperature_protection_recovery"] = bms.discharge_overtemperature_protection_recovery;
-//    device["charge_undertemperature_protection"] = bms.charge_undertemperature_protection;
-//    device["charge_undertemperature_protection_recovery"] = bms.charge_undertemperature_protection_recovery;
-//    device["power_tube_overtemperature_protection"] = bms.power_tube_overtemperature_protection;
-//    device["power_tube_overtemperature_protection_recovery"] = bms.power_tube_overtemperature_protection_recovery;
-//    device["short_circuit_protection_delay"] = bms.short_circuit_protection_delay;
-//  }
-//
-//  String jsonResponse;
-//  serializeJson(doc, jsonResponse);
-//  server.send(200, "application/json", jsonResponse);
-//}
-//
-// TODO: Here is the control part of the program. Convert to LVGL controls.
-//void handleControl() {
-//  if (server.method() == HTTP_POST) {
-//    // JSON-Daten aus dem Request lesen
-//    DynamicJsonDocument doc(200);
-//    DeserializationError error = deserializeJson(doc, server.arg("plain"));
-//    if (error) {
-//      server.send(400, "text/plain", "Invalid JSON");
-//      return;
-//    }
-//
-//    // Daten aus dem JSON-Objekt extrahieren
-//    String mac = doc["mac"];
-//    String action = doc["action"];
-//    String state = doc["state"];
-//
-//    // Parameter für writeRegister() bestimmen
-//    uint8_t address;
-//    uint32_t value;
-//
-//    if (action == "charging") {
-//      address = 0x1D;
-//    } else if (action == "discharging") {
-//      address = 0x1E;
-//    } else if (action == "balancing") {
-//      address = 0x1F;
-//    } else {
-//      server.send(400, "text/plain", "Invalid action");
-//      return;
-//    }
-//
-//    if (state == "on") {
-//      value = 0x0000001;
-//    } else if (state == "off") {
-//      value = 0x00000000;
-//    } else {
-//      server.send(400, "text/plain", "Invalid state");
-//      return;
-//    }
-//
-//    // writeRegister() für das entsprechende BMS aufrufen
-//    for (int i = 0; i < bmsDeviceCount; i++) {
-//      if (jkBmsDevices[i].targetMAC == mac.c_str()) {
-//        jkBmsDevices[i].writeRegister(address, value, 0x04);
-//        server.send(200, "text/plain", "Command executed");
-//        return;
-//      }
-//    }
-//
-//    server.send(404, "text/plain", "BMS not found");
-//  } else {
-//    server.send(405, "text/plain", "Method Not Allowed");
-//  }
-//}
-
-void handleSketchInfo() {
-  String sketchInfo = getSketchInfo();
-//  server.send(200, "application/json", sketchInfo);
-}
-
-void handleFreeHeap() {
-  char formattedHeap[20];
-  formatBytes(minFreeHeap, formattedHeap, sizeof(formattedHeap));
-//
-//  // JSON-Objekt erstellen
-//  DynamicJsonDocument doc(100);
-//  doc["free_heap"] = formattedHeap;
-//
-//  String jsonResponse;
-//  serializeJson(doc, jsonResponse);
-//  server.send(200, "application/json", jsonResponse);
-}
-
-void handleUptime() {
-  calculateUptime();
-//  DynamicJsonDocument doc(100);
-//  doc["uptime_seconds"] = totalSeconds;
-//  doc["uptime_formatted"] = formatUptime(totalSeconds);
-//
-//  String jsonResponse;
-//  serializeJson(doc, jsonResponse);
-//  server.send(200, "application/json", jsonResponse);
-}
-
-//void fileserverSetup() {
-//  server.on("/fs", HTTP_GET, handleFileList);
-//  server.on("/upload", HTTP_POST, sendResponce, handleFileUpload);
-//  server.on("/delete", HTTP_GET, handleFileDelete);
-//  server.on("/view", HTTP_GET, handleFileView);
-//  server.on("/format", HTTP_GET, handleFormat);
-//}
-
-//void handleFileList() {
-//  String files;
-//  File root = LittleFS.open("/");
-//  File file = root.openNextFile();
-//
-//  while (file) {
-//    char buffer1[20];
-//    size_t sizeofFile = file.size();
-//    formatBytes(sizeofFile, buffer1, sizeof(buffer1));
-//    files += "<div class='file-container'>";
-//    files += "<span class='filename'>" + String(file.name()) + "</span>";
-//    files += "<span class='file-size'>" + String(buffer1) + "</span>";
-//    files += "<span class='file-date'>" + getLastModified(file) + "</span>";
-//    files += "<span class='file-actions'>";
-//    files += "<a href='/delete?file=/" + String(file.name()) + "'>Delete</a>";
-//    files += "<a href='/view?file=" + String(file.name()) + "'>View</a>";
-//    files += "</span></div>";
-//    file = root.openNextFile();
-//  }
-//
-//  String html = "<html><head>";
-//  html += "<style>body { text-align: center; }";
-//  html += ".container { display: inline-block; text-align: center; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }";
-//  html += ".file-container { margin: 10px 0; display: flex; align-items: center; }";
-//  html += ".filename { flex: 1; margin-right: 10px; text-align: left; }";
-//  html += ".file-size { font-size: 60%; margin-right: 10px; }";
-//  html += ".file-date { font-size: 60%; margin-right: 10px; }";
-//  html += ".file-actions { display: flex; }";
-//  html += ".file-actions a { margin-right: 5px; text-decoration: none; color: #007BFF; }";
-//  html += "</style></head><body>";
-//  html += "<div class='container'>";
-//  html += "<h2 style='margin-top: 0;'>Files on LittleFS</h2>";
-//  html += "<div class='file-list'>" + files + "</div>";
-//  html += "<br>";
-//  html += "<hr>";
-//  html += "<h3>Upload</h3>";
-//  html += "<form method='post' action='/upload' enctype='multipart/form-data'>";
-//  html += "<input type='file' name='upload[]' id='uploadFile' multiple>";
-//  html += "<input type='submit' value='Upload'>";
-//  html += "</form>";
-//  html += "<br>";
-//  html += "<hr>";
-//  html += "<h3>Format Filesystem</h3>";
-//  html += "<form method='get' action='/format'>";
-//  html += "<input type='submit' value='Format'>";
-//  html += "</form>";
-//  html += "</div></body></html>";
-//
-//  server.send(200, "text/html", html);
-//}
-
-//void handleFileUpload() {
-//  if (server.uri() != "/upload") return;
-//  HTTPUpload& upload = server.upload();
-//  static File file;
-//
-//  if (upload.status == UPLOAD_FILE_START) {
-//    String filename = "/" + upload.filename;
-//    DEBUG_PRINTLN("Upload started: " + filename);
-//    file = LittleFS.open(filename, "w");
-//    if (!file) {
-//      DEBUG_PRINTLN(F("Failed to open file for writing"));
-//      return;
-//    }
-//    DEBUG_PRINTLN(F("File opened for writing"));
-//  } else if (upload.status == UPLOAD_FILE_WRITE) {
-//    if (file) {
-//      size_t bytesWritten = file.write(upload.buf, upload.currentSize);
-//      if (bytesWritten != upload.currentSize) {
-//        DEBUG_PRINTLN(F("Error writing to file"));
-//      } else {
-//        DEBUG_PRINTLN("Bytes written to file: " + String(upload.currentSize));
-//      }
-//    }
-//  } else if (upload.status == UPLOAD_FILE_END) {
-//    if (file) {
-//      file.close();
-//      DEBUG_PRINTLN(F("Upload finished. File closed"));
-//    } else {
-//      DEBUG_PRINTLN(F("Upload finished, but file was not open"));
-//    }
-//  }
-//}
-
-//void handleFileDelete() {
-//  String filename = server.arg("file");
-//  DEBUG_PRINTLN("Delete: " + filename);
-//
-//  if (LittleFS.remove(filename)) {
-//    DEBUG_PRINTLN(F("File deleted"));
-//  } else {
-//    DEBUG_PRINTLN(F("Failed to delete file"));
-//  }
-//  sendResponce();
-//}
-
-//void handleFileView() {
-//  String filename = server.arg("file");
-//  DEBUG_PRINTLN("View: " + filename);
-//
-//  if (!filename.startsWith("/")) {
-//    filename = "/" + filename;
-//  }
-//
-//  File file = LittleFS.open(filename, "r");
-//  if (!file) {
-//    DEBUG_PRINTLN(F("Failed to open file for reading"));
-//    server.send(404, "text/plain", "File not found");
-//    return;
-//  }
-//
-//  String content = file.readString();
-//  file.close();
-//
-//  String html = "<html><body><h2>File Viewer</h2><p>Content of " + filename + ":</p><pre>" + content + "</pre></body></html>";
-//  server.send(200, "text/html", html);
-//}
-
-//void handleFormat() {
-//  LittleFS.format();
-//  DEBUG_PRINTLN(F("Formating LittleFS"));
-//  sendResponce();
-//}
-
-//void sendResponce() {
-//  server.sendHeader("Location", "/fs");
-//  server.send(303, "message/http");
-//}
-
-//String getLastModified(File file) {
-//  time_t lastWriteTime = file.getLastWrite();
-//  struct tm* timeinfo;
-//  char buffer[20];
-//  timeinfo = localtime(&lastWriteTime);
-//  strftime(buffer, sizeof(buffer), "%d:%m:%y %H:%M", timeinfo);
-//  return String(buffer);
-//}
 
 void update_bms_display(){
   bool connected = false;
@@ -1766,30 +1410,8 @@ void setup() {
   lv_obj_set_style_text_font(lbl_header, &lv_font_montserrat_18, LV_PART_MAIN);
   lv_obj_align(lbl_header, LV_ALIGN_TOP_MID, 5, 3);
 
+  // launch main screen on startup
   go_main();
-
-  // TODO: This can all go once I have LVGL set up.
-  // WiFi initialisieren
-  //WiFi.begin(ssid, password);
-  //while (WiFi.status() != WL_CONNECTED) {
-  //  delay(500);
-  //  Serial.print(".");
-  //}
-  //Serial.println("\nWiFi connected");
-  //Serial.println("IP address: ");
-  //Serial.println(WiFi.localIP());
-  //configTime(0, 0, "fritz.box", "de.pool.ntp.org");
-  //setupLittleFS();
-  //server.serveStatic("/main", LittleFS, "/index.html");
-  //server.serveStatic("/style.css", LittleFS, "/style.css", "text/css");
-  //server.on("/", HTTP_GET, handleRoot);
-  //server.on("/data", HTTP_GET, handleJSON);
-  //server.on("/control", HTTP_POST, handleControl);
-  //server.on("/sketchinfo", HTTP_GET, handleSketchInfo);
-  //server.on("/freeheap", HTTP_GET, handleFreeHeap);
-  //server.on("/uptime", HTTP_GET, handleUptime);
-  //fileserverSetup();
-  //server.begin();
 
 
   DEBUG_PRINTLN("Initializing NimBLE Client...");
@@ -1816,7 +1438,6 @@ void loop() {
     lastDisplayUpdate = millis();
   }
 
-  //server.handleClient();
   // Connection management
   int connectedCount = 0;  // Counter for connected devices
 
