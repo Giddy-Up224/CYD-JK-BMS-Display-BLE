@@ -8,7 +8,7 @@ This project is a modified version of [peff74/Arduino-jk-bms](https://github.com
 Current stage:
 - Continuing work on converting to LVGL instead of the webserver/webpage.
 - SOC, Voltage, and Current are displayed on home screen
-- Cell Voltages and Wire Resistances are available from there respective screens
+- Cell Voltages and Wire Resistances are available from their respective screens
 
 Future Features:
 - List and select available devices
