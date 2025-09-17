@@ -1,6 +1,6 @@
 # CYD-JK-BMS-Display-BLE
 
-This project is a modified version of [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms), rewritten using [LVGL](https://lvgl.io/) so I can view the data and control the BMS directly on a [CYD](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display).
+This project is based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms). I'm using [LVGL](https://lvgl.io/) so I can view the data and control the BMS directly on a [CYD](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display).
 
 
 
