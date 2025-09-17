@@ -208,7 +208,7 @@ void loop() {
   // Start scan if not all devices are connected
   if (connectedCount < bmsDeviceCount && (millis() - lastScanTime >= BLE_SCAN_PERIOD)) {
     DEBUG_PRINTLN("Starting scan...");
-    pScan->start(BLE_SCAN_TIMEOUT / 1000, false, true);
+    pScan->start(BLE_SCAN_TIMEOUT, false, true);
     lastScanTime = millis();
   }
 
