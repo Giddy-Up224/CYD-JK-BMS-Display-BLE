@@ -48,6 +48,10 @@ Otherwise I'll let you figure it out. <i><small>You can always Google or ChatGPT
 
 Works with my JK-B1A8S10P BMS
 
+## Help
+
+If you have any questions or simply want to share how you've used this repo, please head over to [Discussions](https://github.com/Giddy-Up224/CYD-JK-BMS-Display-BLE/discussions/1) where you can introduce yourself and post your prject in the [show and tell](https://github.com/Giddy-Up224/CYD-JK-BMS-Display-BLE/discussions/categories/show-and-tell) channel.
+
 ## Credits
 
 Thanks to [@peff74](https://github.com/peff74/), FINALLY a solution that actually has the backend working out of the box!
