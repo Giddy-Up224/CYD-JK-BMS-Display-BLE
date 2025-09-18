@@ -5,6 +5,9 @@
 #include "../jkbms.h"
 #include <LVGL_CYD.h>
 
+// app-wide Global vars
+std::vector<ScannedDevice> scannedDevices;
+
 // Global LVGL elements
 lv_obj_t* soc_gauge = nullptr;
 lv_obj_t* soc_gauge_label = nullptr;
@@ -20,6 +23,9 @@ lv_obj_t* res_high_low_avg_table = nullptr;
 // Screen objects
 lv_obj_t* scr_main = nullptr;
 lv_obj_t* scr_more = nullptr;
+lv_obj_t* scr_select_devices = nullptr;
+lv_obj_t* device_list = nullptr;
+lv_obj_t* devices_scroll_container = nullptr;
 lv_obj_t* scr_settings = nullptr;
 lv_obj_t* btn_back = nullptr;
 lv_obj_t* btn_exit = nullptr;
@@ -36,6 +42,8 @@ lv_obj_t* vertical = nullptr;
 // Global variables for LVGL components
 float battery_voltage;
 float battery_current;
+
+
 
 // Creates a new obj to use as base screen
 lv_obj_t* new_screen(lv_obj_t* parent) {
@@ -494,6 +502,84 @@ void go_cell_voltages() {
   lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
   lv_screen_load(scr_cell_voltages);
+}
+
+void add_ble_device_card(const DeviceInfo& dev) {
+  lv_obj_t* card = lv_btn_create(devices_scroll_container);
+  lv_obj_set_content_width(card, lv_pct(100));
+  lv_obj_set_style_pad_all(card, 10, 0);
+  lv_obj_set_style_radius(card, 12, 0);
+  
+
+  lv_obj_add_event_cb(card, device_connect_event_cb, LV_EVENT_CLICKED, (void*)dev.mac.c_str());
+
+  // Labels
+  lv_obj_t* label_name = lv_label_create(card);
+  lv_label_set_text_fmt(label_name, "%s", dev.name.c_str());
+
+  lv_obj_t* label_mac = lv_label_create(card);
+  lv_label_set_text_fmt(label_mac, "MAC: %s", dev.mac.c_str());
+
+  lv_obj_t* label_rssi = lv_label_create(card);
+  lv_label_set_text_fmt(label_rssi, "RSSI: %d dBm", dev.rssi);
+
+  deviceCards[dev.mac] = card; // store for updates
+}
+
+void go_select_devices() {
+  if(!scr_select_devices) {
+    scr_select_devices = new_screen(NULL);
+    lv_obj_set_style_bg_opa(scr_select_devices, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scr_select_devices, 0, 0);
+    lv_obj_set_size(scr_select_devices, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    // create list container
+    device_list = lv_list_create(scr_select_devices);
+    lv_obj_set_size(device_list, lv_pct(95), lv_pct(80));
+    
+    // scan button
+    lv_obj_t* scan_btn = lv_btn_create(scr_select_devices);
+    lv_obj_set_size(scan_btn, 100, 40);
+    lv_obj_align(scan_btn, LV_ALIGN_BOTTOM_MID, 0, -10);
+
+    lv_obj_t* scan_label = lv_label_create(scan_btn);
+    lv_label_set_text(scan_label, "Scan");
+    lv_obj_center(scan_label);
+
+    lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
+      // Clear old results
+      scannedDevices.clear();
+      lv_obj_clean(device_list);
+
+      // Start new scan
+      extern NimBLEScan* pScan;
+      if (pScan && !pScan->isScanning()) {
+          pScan->start(5, false, true);  // 5 second scan
+
+          // Show scanning message
+          lv_obj_t* scanning_label = lv_list_add_text(device_list, "Scanning...");
+      }
+    }, LV_EVENT_CLICKED, NULL);
+
+    // update button - refreshes the list display
+    lv_obj_t* update_btn = lv_btn_create(scr_select_devices);
+    lv_obj_set_size(update_btn, 100, 40);
+    lv_obj_align(update_btn, LV_ALIGN_BOTTOM_LEFT, 10, -10);
+
+    lv_obj_t* update_label = lv_label_create(update_btn);
+    lv_label_set_text(update_label, "Update");
+    lv_obj_center(update_label);
+
+    lv_obj_add_event_cb(update_btn, [](lv_event_t* e) -> void {
+        refresh_device_list();
+    }, LV_EVENT_CLICKED, NULL);
+  }
+  refresh_device_list();
+
+  lv_label_set_text(lbl_header, "Select BMS");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_screen_load(scr_select_devices);
 }
 
 void go_more() {

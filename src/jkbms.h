@@ -4,6 +4,18 @@
 #include <NimBLEDevice.h>
 #include <string>
 
+struct ScannedDevice {
+  std::string macAddress;
+  std::string deviceName;
+  int rssi;
+  bool isConnectable;
+  const NimBLEAdvertisedDevice* advDevice; // store pointer to use for connection
+};
+
+extern std::vector<ScannedDevice> scannedDevices;
+extern lv_obj_t* device_list;
+extern lv_obj_t* scr_select_devices;
+
 class JKBMS {
 public:
   JKBMS(const std::string& mac);
