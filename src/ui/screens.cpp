@@ -386,7 +386,7 @@ void go_wire_resistances() {
     lv_table_set_cell_value(res_high_low_avg_table, 3, 0, "Delta_Res.");
     lv_table_set_cell_value(res_high_low_avg_table, 4, 0, "Avg_Res.");
 
-    lv_obj_set_style_bg_color(res_high_low_avg_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(res_high_low_avg_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_font(res_high_low_avg_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
     for (int r = 1; r < num_rows; r++) {
@@ -407,7 +407,7 @@ void go_wire_resistances() {
     lv_table_set_cell_value(wire_res_table, 0, 0, "Cell");
     lv_table_set_cell_value(wire_res_table, 0, 1, "Res.");
 
-    lv_obj_set_style_bg_color(wire_res_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(wire_res_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_font(wire_res_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
     for (int i = 1; i <= 16; i++) {
@@ -460,7 +460,7 @@ void go_cell_voltages() {
     lv_table_set_cell_value(delta_voltages_table, 3, 0, "Delta_V");
     lv_table_set_cell_value(delta_voltages_table, 4, 0, "Avg_V");
 
-    lv_obj_set_style_bg_color(delta_voltages_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(delta_voltages_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_font(delta_voltages_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
     for (int r = 1; r < num_rows; r++) {
@@ -481,7 +481,7 @@ void go_cell_voltages() {
     lv_table_set_cell_value(cell_voltage_table, 0, 0, "Cell");
     lv_table_set_cell_value(cell_voltage_table, 0, 1, "Voltage (V)");
 
-    lv_obj_set_style_bg_color(cell_voltage_table, lv_color_hex(0xE0E0E0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(cell_voltage_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_font(cell_voltage_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
     for (int i = 1; i <= 16; i++) {
