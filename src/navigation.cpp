@@ -1,5 +1,5 @@
 #include "navigation.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 // Navigation stack
 ScreenID nav_stack[NAVIGATION_STACK_SIZE];

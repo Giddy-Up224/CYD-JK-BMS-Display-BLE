@@ -6,7 +6,7 @@
 
 // Project modules
 #include "config.h"
-#include "utils.h"
+#include "utils/utils.h"
 #include "navigation.h"
 #include "jkbms.h"
 #include "ui/screens.h"
