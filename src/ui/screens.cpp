@@ -59,6 +59,41 @@ lv_obj_t* new_screen(lv_obj_t* parent) {
   return obj;
 }
 
+// ble device connection callback
+void device_connect_event_cb(lv_event_t* e) {
+  lv_obj_t* btn = (lv_obj_t*)lv_event_get_target(e);
+  size_t device_index = (size_t)lv_obj_get_user_data(btn);
+
+  if(device_index >= scannedDevices.size()) return;
+
+  const ScannedDevice& selected = scannedDevices[device_index];
+
+  DEBUG_PRINTF("Selected device: %s (%s)\n",
+               selected.deviceName.c_str(),
+               selected.macAddress.c_str());
+
+  // find available BMS slot or use first one
+  int slot = 0;
+  
+  // setup connection
+  jkBmsDevices[slot].targetMAC = selected.macAddress;
+  jkBmsDevices[slot].advDevice = selected.advDevice;
+  jkBmsDevices[slot].doConnect = true;
+
+  // show connection status
+  lv_obj_t* msgbox = lv_msgbox_create(NULL);
+  lv_msgbox_add_title(msgbox, "Connecting");
+  lv_msgbox_add_text(msgbox, ("Connecting to:\n" + selected.deviceName + "\n" + selected.macAddress).c_str());
+
+  // auto close msgbox after 2 seconds
+  lv_timer_t* timer = lv_timer_create([](lv_timer_t* t) {
+    lv_msgbox_close((lv_obj_t*)t->user_data);
+    lv_timer_del(t);
+  }, 2000, msgbox);
+
+}
+
+// keeps display updated with incoming data
 void update_bms_display() {
   bool connected = false;
   JKBMS* connectedBMS = nullptr;
@@ -170,6 +205,55 @@ void update_bms_display() {
     } else {
       for (int i = 0; i < 16; i++) {
         lv_table_set_cell_value(wire_res_table, i + 1, 1, "-");
+      }
+    }
+  }
+}
+
+// refresh ble device list when scanning
+void refresh_device_list() {
+  if(!device_list) return;
+
+  // clear existing list items
+  lv_obj_clean(device_list);
+
+  if (scannedDevices.empty()) {
+    lv_list_add_text(device_list, "no devices found. Press 'Scan'");
+    return;
+  }
+
+  // add header
+  lv_list_add_text(device_list, "Found Devices:");
+
+  // add each device as a button
+  for (size_t i = 0; 1 < scannedDevices.size(); i++) {
+    const ScannedDevice& device = scannedDevices[i];
+
+    // create button text with info
+    char btn_text[100];
+    snprintf(btn_text, sizeof(btn_text), "%s\nMAC: %s | RSSI: %d",
+             device.deviceName.c_str(),
+             device.macAddress.c_str(),
+             device.rssi);
+
+    lv_obj_t* btn = lv_list_add_btn(device_list, LV_SYMBOL_BLUETOOTH, btn_text);
+
+    // store device index in button user data
+    lv_obj_set_user_data(btn, (void*)i);
+
+    // add click event handler for connection
+    lv_obj_add_event_cb(btn, device_connect_event_cb, LV_EVENT_CLICKED, NULL);
+
+    // color code based on connection status
+    bool is_connected = false;
+    for (int j = 0; j < bmsDeviceCount; j++) {
+      if (jkBmsDevices[j].targetMAC == device.macAddress && jkBmsDevices[j].connected) {
+        is_connected = true;
+        break;
+      }
+
+      if(is_connected) {
+        lv_obj_set_style_bg_color(btn, lv_color_hex(0x4CAF50), LV_PART_MAIN);
       }
     }
   }
@@ -504,27 +588,27 @@ void go_cell_voltages() {
   lv_screen_load(scr_cell_voltages);
 }
 
-void add_ble_device_card(const DeviceInfo& dev) {
-  lv_obj_t* card = lv_btn_create(devices_scroll_container);
-  lv_obj_set_content_width(card, lv_pct(100));
-  lv_obj_set_style_pad_all(card, 10, 0);
-  lv_obj_set_style_radius(card, 12, 0);
-  
-
-  lv_obj_add_event_cb(card, device_connect_event_cb, LV_EVENT_CLICKED, (void*)dev.mac.c_str());
-
-  // Labels
-  lv_obj_t* label_name = lv_label_create(card);
-  lv_label_set_text_fmt(label_name, "%s", dev.name.c_str());
-
-  lv_obj_t* label_mac = lv_label_create(card);
-  lv_label_set_text_fmt(label_mac, "MAC: %s", dev.mac.c_str());
-
-  lv_obj_t* label_rssi = lv_label_create(card);
-  lv_label_set_text_fmt(label_rssi, "RSSI: %d dBm", dev.rssi);
-
-  deviceCards[dev.mac] = card; // store for updates
-}
+//void add_ble_device_card(const ScannedDevice& dev) {
+//  lv_obj_t* card = lv_btn_create(devices_scroll_container);
+//  lv_obj_set_content_width(card, lv_pct(100));
+//  lv_obj_set_style_pad_all(card, 10, 0);
+//  lv_obj_set_style_radius(card, 12, 0);
+//  
+//
+//  lv_obj_add_event_cb(card, device_connect_event_cb, LV_EVENT_CLICKED, (void*)dev.mac.c_str());
+//
+//  // Labels
+//  lv_obj_t* label_name = lv_label_create(card);
+//  lv_label_set_text_fmt(label_name, "%s", dev.name.c_str());
+//
+//  lv_obj_t* label_mac = lv_label_create(card);
+//  lv_label_set_text_fmt(label_mac, "MAC: %s", dev.mac.c_str());
+//
+//  lv_obj_t* label_rssi = lv_label_create(card);
+//  lv_label_set_text_fmt(label_rssi, "RSSI: %d dBm", dev.rssi);
+//
+//  deviceCards[dev.mac] = card; // store for updates
+//}
 
 void go_select_devices() {
   if(!scr_select_devices) {
@@ -586,6 +670,19 @@ void go_more() {
   if (!scr_more) {
     scr_more = new_screen(NULL);
     lv_obj_set_size(scr_more, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    // Add select device button
+    lv_obj_t* select_device_btn = lv_btn_create(scr_more);
+    lv_obj_set_size(select_device_btn, 120, 40);
+    lv_obj_align(select_device_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
+    lv_obj_add_event_cb(select_device_btn, [](lv_event_t* e) -> void {
+      nav_push(ScreenID::SCREEN_MORE);
+      go_select_devices();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* select_device_btn_label = lv_label_create(select_device_btn);
+    lv_label_set_text(select_device_btn_label, "Select BMS");
+    lv_obj_center(select_device_btn_label);
 
     // Add cell voltages button
     lv_obj_t* cell_voltages_btn = lv_btn_create(scr_more);

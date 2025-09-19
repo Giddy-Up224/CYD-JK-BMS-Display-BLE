@@ -1,6 +1,9 @@
 #pragma once
 
 #include <lvgl.h>
+#include <vector>
+#include <string>
+
 
 // Forward declaration to avoid circular dependency
 class JKBMS;
@@ -32,6 +35,8 @@ extern lv_obj_t* slider_bl;
 extern lv_obj_t* scr_touch;
 extern lv_obj_t* horizontal;
 extern lv_obj_t* vertical;
+extern lv_obj_t* device_list;
+extern lv_obj_t* scr_select_devices;
 
 // Global variables for LVGL components
 extern float battery_voltage;
@@ -48,6 +53,7 @@ void go_touch();
 void go_rotate();
 void go_cell_voltages();
 void go_wire_resistances();
+void go_select_devices();
 
 // Update functions
 void update_bms_display();

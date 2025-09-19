@@ -71,6 +71,10 @@ void setupUINavigation() {
         go_wire_resistances();
         DEBUG_PRINTLN("going to scr_cell_resistances");
         break;
+      case SCREEN_SELECT_DEVICES:
+        go_select_devices();
+        DEBUG_PRINTLN("going to scr_select_devices");
+        break;
       default:
         go_main();
         DEBUG_PRINTF("%d not found! Defaulting to scr_main...", prev);

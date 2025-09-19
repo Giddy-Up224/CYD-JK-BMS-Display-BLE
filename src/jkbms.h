@@ -13,8 +13,6 @@ struct ScannedDevice {
 };
 
 extern std::vector<ScannedDevice> scannedDevices;
-extern lv_obj_t* device_list;
-extern lv_obj_t* scr_select_devices;
 
 class JKBMS {
 public:
