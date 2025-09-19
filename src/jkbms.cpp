@@ -360,32 +360,6 @@ void ClientCallbacks::onDisconnect(NimBLEClient* pClient, int reason) {
 
 void ScanCallbacks::onResult(const NimBLEAdvertisedDevice* advertisedDevice) {
   DEBUG_PRINTF("BLE Device found: %s\n", advertisedDevice->toString().c_str());
-  ScannedDevice newDevice;
-  newDevice.macAddress = advertisedDevice->getAddress().toString();
-  newDevice.deviceName = advertisedDevice->haveName() ? advertisedDevice->getName() : "Unknown"; // if there is no name, use "Unknown" as name
-  newDevice.rssi = advertisedDevice->getRSSI();
-  newDevice.isConnectable = advertisedDevice->isConnectable();
-  // create copy of advertised device to store
-  newDevice.advDevice = new NimBLEAdvertisedDevice(*advertisedDevice);
-
-  // Check if devices already exists in list (update if found)
-  bool found = false;
-  for (auto& device : scannedDevices) {
-    if(device.macAddress == newDevice.macAddress) {
-      // update existing device
-      device.rssi = newDevice.rssi;
-      device.deviceName = newDevice.deviceName;
-      delete device.advDevice; // clean up old copy
-      device.advDevice = newDevice.advDevice;
-      found = true;
-      break;
-    }
-  }
-
-  if(!found) {
-    scannedDevices.push_back(newDevice);
-  }
-  
   for (int i = 0; i < bmsDeviceCount; i++) {
     if (jkBmsDevices[i].targetMAC.empty()) continue;  // Skip empty MAC addresses
     if (advertisedDevice->getAddress().toString() == jkBmsDevices[i].targetMAC && !jkBmsDevices[i].connected && !jkBmsDevices[i].doConnect) {
