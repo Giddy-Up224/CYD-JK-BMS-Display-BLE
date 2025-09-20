@@ -17,19 +17,85 @@
 Preferences user_settings;
 
 // BMS devices array
-JKBMS jkBmsDevices[] = {
-  JKBMS(BMS_MAC_ADDRESS_1),
-  // Add more devices here if needed
-  // JKBMS(BMS_MAC_ADDRESS_2),
-  // JKBMS(BMS_MAC_ADDRESS_3)
-};
+//123JKBMS jkBmsDevices[] = {
+//123  JKBMS(BMS_MAC_ADDRESS_1),
+//123  // Add more devices here if needed
+//123  // JKBMS(BMS_MAC_ADDRESS_2),
+//123  // JKBMS(BMS_MAC_ADDRESS_3)
+//123};
 
-const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
+JKBMS jkBmsDevices[];
+
+//123const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
+int bmsDeviceCount = sizeof(NULL);
 
 // BLE scanning
 NimBLEScan* pScan;
 unsigned long lastScanTime = 0;
 ScanCallbacks scanCallbacks;
+
+//********************************************
+// Scanning logic
+//********************************************
+void scanForJKDevices() {
+  NimBLEDevice::init("MultiJKBMS-Client");
+  NimBLEDevice::setPower(3);
+
+  // Setup BLE scanning
+  pScan = NimBLEDevice::getScan();
+  pScan->setScanCallbacks(&scanCallbacks);
+  pScan->setInterval(BLE_SCAN_INTERVAL);
+  pScan->setWindow(BLE_SCAN_WINDOW);
+  pScan->setActiveScan(true);
+  pScan->start(BLE_SCAN_TIME, false, true);
+}
+
+void setupJKDevices() {
+  // Initialize BLE
+  Serial.println("Initializing NimBLE Client...");
+
+  // Print configured BMS devices
+  for (int i = 0; i < bmsDeviceCount; i++) {
+    DEBUG_PRINTF("BMS Device %d: MAC = %s\n", i, jkBmsDevices[i].targetMAC.c_str());
+  }
+
+  
+
+  // BMS Connection management
+  int connectedCount = 0;
+
+  for (int i = 0; i < bmsDeviceCount; i++) {
+    if (jkBmsDevices[i].targetMAC.empty()) continue;
+
+    // Connect to BMS if needed
+    if (jkBmsDevices[i].doConnect && !jkBmsDevices[i].connected) {
+      DEBUG_PRINTF("Attempting to connect to BMS %d (%s)...\n", i, jkBmsDevices[i].targetMAC.c_str());
+      if (jkBmsDevices[i].connectToServer()) {
+        DEBUG_PRINTF("%s connected successfully\n", jkBmsDevices[i].targetMAC.c_str());
+      } else {
+        DEBUG_PRINTF("%s connection failed\n", jkBmsDevices[i].targetMAC.c_str());
+      }
+      jkBmsDevices[i].doConnect = false;
+    }
+
+    // Check for connection timeout
+    if (jkBmsDevices[i].connected) {
+      connectedCount++;
+      if (millis() - jkBmsDevices[i].lastNotifyTime > BMS_CONNECTION_TIMEOUT) {
+        DEBUG_PRINTF("%s connection timeout\n", jkBmsDevices[i].targetMAC.c_str());
+        NimBLEClient* pClient = NimBLEDevice::getClientByPeerAddress(jkBmsDevices[i].advDevice->getAddress());
+        if (pClient) pClient->disconnect();
+      }
+    }
+  }
+
+  // Start scan if not all devices are connected
+  if (connectedCount < bmsDeviceCount && (millis() - lastScanTime >= BLE_SCAN_PERIOD)) {
+    DEBUG_PRINTLN("Starting scan...");
+    pScan->start(BLE_SCAN_TIME, false, true);
+    lastScanTime = millis();
+  }
+}
 
 //********************************************
 // Setup UI Navigation
@@ -140,23 +206,7 @@ void setup() {
   // Launch main screen on startup
   go_main();
 
-  // Initialize BLE
-  DEBUG_PRINTLN("Initializing NimBLE Client...");
-
-  // Print configured BMS devices
-  for (int i = 0; i < bmsDeviceCount; i++) {
-    DEBUG_PRINTF("BMS Device %d: MAC = %s\n", i, jkBmsDevices[i].targetMAC.c_str());
-  }
-
-  NimBLEDevice::init("MultiJKBMS-Client");
-  NimBLEDevice::setPower(3);
-
-  // Setup BLE scanning
-  pScan = NimBLEDevice::getScan();
-  pScan->setScanCallbacks(&scanCallbacks);
-  pScan->setInterval(BLE_SCAN_INTERVAL);
-  pScan->setWindow(BLE_SCAN_WINDOW);
-  pScan->setActiveScan(true);
+  
 }
 
 //********************************************
@@ -171,46 +221,14 @@ void loop() {
   monitorFreeHeap();
 
   // Update BMS display periodically
+  // TODO: change this to update only whenever a new notification is received
   static unsigned long lastDisplayUpdate = 0;
   if (millis() - lastDisplayUpdate >= DISPLAY_UPDATE_INTERVAL) {
     update_bms_display();
     lastDisplayUpdate = millis();
   }
 
-  // BMS Connection management
-  int connectedCount = 0;
-
-  for (int i = 0; i < bmsDeviceCount; i++) {
-    if (jkBmsDevices[i].targetMAC.empty()) continue;
-
-    // Connect to BMS if needed
-    if (jkBmsDevices[i].doConnect && !jkBmsDevices[i].connected) {
-      DEBUG_PRINTF("Attempting to connect to BMS %d (%s)...\n", i, jkBmsDevices[i].targetMAC.c_str());
-      if (jkBmsDevices[i].connectToServer()) {
-        DEBUG_PRINTF("%s connected successfully\n", jkBmsDevices[i].targetMAC.c_str());
-      } else {
-        DEBUG_PRINTF("%s connection failed\n", jkBmsDevices[i].targetMAC.c_str());
-      }
-      jkBmsDevices[i].doConnect = false;
-    }
-
-    // Check for connection timeout
-    if (jkBmsDevices[i].connected) {
-      connectedCount++;
-      if (millis() - jkBmsDevices[i].lastNotifyTime > BMS_CONNECTION_TIMEOUT) {
-        DEBUG_PRINTF("%s connection timeout\n", jkBmsDevices[i].targetMAC.c_str());
-        NimBLEClient* pClient = NimBLEDevice::getClientByPeerAddress(jkBmsDevices[i].advDevice->getAddress());
-        if (pClient) pClient->disconnect();
-      }
-    }
-  }
-
-  // Start scan if not all devices are connected
-  if (connectedCount < bmsDeviceCount && (millis() - lastScanTime >= BLE_SCAN_PERIOD)) {
-    DEBUG_PRINTLN("Starting scan...");
-    pScan->start(BLE_SCAN_TIMEOUT, false, true);
-    lastScanTime = millis();
-  }
+  
 
   delay(10);
 }
