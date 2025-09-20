@@ -6,6 +6,20 @@
 // Project modules
 #include "config.h"
 
+// Enable or disable debugging output
+#define DEBUG_ENABLED true
+
+// Debugging macro
+#if DEBUG_ENABLED
+#define DEBUG_PRINT(...) Serial.print(__VA_ARGS__)
+#define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+#define DEBUG_PRINTF(...) Serial.printf(__VA_ARGS__)
+#else
+#define DEBUG_PRINT(...)
+#define DEBUG_PRINTLN(...)
+#define DEBUG_PRINTF(...)
+#endif
+
 //********************************************
 // Global Variables
 //********************************************
@@ -16,22 +30,24 @@ lv_obj_t* scr_scan = nullptr;
 
 // BLE scanning
 NimBLEScan* pScan;
-unsigned long lastScanTime = 0;
 
 //********************************************
 // Scanning logic
 //********************************************
 void scanForDevices() {
-  NimBLEDevice::init("test");
-  NimBLEDevice::setPower(3);
-
-  // Setup BLE scanning
-  pScan = NimBLEDevice::getScan();
-  pScan->setInterval(BLE_SCAN_INTERVAL);
-  pScan->setWindow(BLE_SCAN_WINDOW);
-  pScan->setActiveScan(true);
-  pScan->start(BLE_SCAN_TIME, false, true);
+  
 }
+
+class ScanCallbacks : public NimBLEScanCallbacks {
+  public:
+  void onResult(const NimBLEAdvertisedDevice* advertisedDevice);
+};
+
+void ScanCallbacks::onResult(const NimBLEAdvertisedDevice* advertisedDevice) {
+  Serial.printf("BLE Device found: %s\n", advertisedDevice->toString().c_str());
+}
+
+ScanCallbacks scanCallbacks;
 
 //********************************************
 // Screens
@@ -83,7 +99,12 @@ void setup() {
 
   // Initialize LVGL and display
   LVGL_CYD::begin(SCREEN_ORIENTATION);
-  
+  // Setup BLE scanning
+  pScan = NimBLEDevice::getScan();
+  pScan->setScanCallbacks(&scanCallbacks);
+  pScan->setInterval(BLE_SCAN_INTERVAL);
+  pScan->setWindow(BLE_SCAN_WINDOW);
+  pScan->setActiveScan(true);
 }
 
 //********************************************
@@ -92,5 +113,7 @@ void setup() {
 void loop() {
   // Handle LVGL tasks
   lv_task_handler();
-  delay(10);
+  pScan->start(BLE_SCAN_TIME, false, true);
+  Serial.printf("count: %d", pScan->getResults().getCount());
+  delay(2000);
 }
