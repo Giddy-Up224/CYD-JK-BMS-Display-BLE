@@ -20,6 +20,7 @@ extern lv_obj_t* res_high_low_avg_table;
 // Screen objects
 extern lv_obj_t* scr_main;
 extern lv_obj_t* scr_more;
+extern lv_obj_t* scr_connect_jk_device;
 extern lv_obj_t* scr_settings;
 extern lv_obj_t* btn_back;
 extern lv_obj_t* btn_exit;
@@ -41,6 +42,7 @@ extern float battery_current;
 lv_obj_t* new_screen(lv_obj_t* parent);
 void go_main();
 void go_more();
+void go_connect_bms();
 void go_settings();
 void go_led();
 void go_backlight();

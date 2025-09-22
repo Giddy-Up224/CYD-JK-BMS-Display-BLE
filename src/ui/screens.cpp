@@ -19,6 +19,9 @@ lv_obj_t* res_high_low_avg_table = nullptr;
 
 // Screen objects
 lv_obj_t* scr_main = nullptr;
+lv_obj_t* scr_connect_jk_device = nullptr;
+lv_obj_t* jk_device_list = nullptr;
+lv_obj_t* jk_devices_scroll_container = nullptr;
 lv_obj_t* scr_more = nullptr;
 lv_obj_t* scr_settings = nullptr;
 lv_obj_t* btn_back = nullptr;
@@ -496,10 +499,64 @@ void go_cell_voltages() {
   lv_screen_load(scr_cell_voltages);
 }
 
+void scan_for_jk_devices() {
+
+}
+
+void populate_device_list() {
+  scan_for_jk_devices();
+}
+
+void go_connect_bms() {
+  if(!scr_connect_jk_device) {
+    scr_connect_jk_device = new_screen(NULL);
+    lv_obj_set_size(scr_connect_jk_device, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    // Add Scan button
+    lv_obj_t* scan_btn = lv_btn_create(scr_connect_jk_device);
+    lv_obj_set_size(scan_btn, 120, 40);
+    lv_obj_align(scan_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
+    lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
+      populate_device_list();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
+    lv_label_set_text(scan_btn_label, LV_STR_SYMBOL_BLUETOOTH + " Scan");
+    lv_obj_center(scan_btn_label);
+
+    // Create scrollable container for device list
+    lv_obj_t* scroll_container = lv_obj_create(scr_connect_jk_device);
+    lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
+    lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scroll_container, 0, 0);
+    lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
+  }
+
+  lv_label_set_text(lbl_header, "Choose Device");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_screen_load(scr_connect_jk_device);
+}
+
 void go_more() {
   if (!scr_more) {
     scr_more = new_screen(NULL);
     lv_obj_set_size(scr_more, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    // Add connect BMS button
+    lv_obj_t* connect_bms_btn = lv_btn_create(scr_more);
+    lv_obj_set_size(connect_bms_btn, 120, 40);
+    lv_obj_align(connect_bms_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
+    lv_obj_add_event_cb(connect_bms_btn, [](lv_event_t* e) -> void {
+      nav_push(ScreenID::SCREEN_MORE);
+      go_connect_bms();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* connect_bms_btn_label = lv_label_create(connect_bms_btn);
+    lv_label_set_text(connect_bms_btn_label, "Connect BMS");
+    lv_obj_center(connect_bms_btn_label);
 
     // Add cell voltages button
     lv_obj_t* cell_voltages_btn = lv_btn_create(scr_more);

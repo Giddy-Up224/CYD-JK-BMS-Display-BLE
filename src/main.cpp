@@ -47,6 +47,10 @@ void setupUINavigation() {
         go_more();
         DEBUG_PRINTLN("going to scr_more");
         break;
+      case SCREEN_CONNECT_JK_DEVICE:
+        go_connect_bms();
+        DEBUG_PRINTLN("going to scr_settings");
+        break;
       case SCREEN_SETTINGS:
         go_settings();
         DEBUG_PRINTLN("going to scr_settings");
