@@ -26,28 +26,61 @@
 
 // Screen objects
 lv_obj_t* scr_main = nullptr;
-lv_obj_t* scr_scan = nullptr;
+lv_obj_t* scroll_container = nullptr;
+//lv_obj_t* lbl_header = nullptr;
 
 // BLE scanning
 NimBLEScan* pScan;
+bool isScanning = false;
+
 
 //********************************************
 // Scanning logic
 //********************************************
-void scanForDevices() {
-  
-}
 
 class ScanCallbacks : public NimBLEScanCallbacks {
-  public:
-  void onResult(const NimBLEAdvertisedDevice* advertisedDevice);
-};
+    void onDiscovered(const NimBLEAdvertisedDevice* advertisedDevice) override {
+        Serial.printf("Discovered Advertised Device: %s \n", advertisedDevice->toString().c_str());
+    }
 
-void ScanCallbacks::onResult(const NimBLEAdvertisedDevice* advertisedDevice) {
-  Serial.printf("BLE Device found: %s\n", advertisedDevice->toString().c_str());
+    void onResult(const NimBLEAdvertisedDevice* advertisedDevice) override {
+        Serial.printf("Advertised Device Result: %s \n", advertisedDevice->toString().c_str());
+
+        const char* name = advertisedDevice->getName().c_str();
+
+        lv_obj_t* device_btn = lv_btn_create(scr_main);
+        lv_obj_align(device_btn, LV_ALIGN_TOP_LEFT, 10, 10);
+        lv_obj_set_size(device_btn, 80, 20);
+        lv_obj_add_event_cb(device_btn, [](lv_event_t* e) -> void {
+          // add the connection function here
+        }, LV_EVENT_CLICKED, NULL);
+      
+        lv_obj_t* device_btn_label = lv_label_create(device_btn);
+        lv_label_set_text(device_btn_label, name);
+        lv_obj_align_to(device_btn_label, device_btn, LV_ALIGN_CENTER, 0, 0);
+        Serial.printf("name is: %s", name);
+    }
+
+    void onScanEnd(const NimBLEScanResults& results, int reason) override {
+        Serial.printf("Scan Ended; reason = %d", reason);
+        isScanning = false;
+        //pScan->setActiveScan(true);
+        //pScan->start(BLE_SCAN_TIME);
+    }
+} scanCallbacks;
+
+void scanForDevices() {
+  // Setup BLE scanning
+  pScan = NimBLEDevice::getScan();
+  pScan->setScanCallbacks(&scanCallbacks);
+  pScan->setActiveScan(isScanning);
+  pScan->setInterval(BLE_SCAN_INTERVAL);
+  pScan->setWindow(BLE_SCAN_WINDOW);
+  pScan->start(BLE_SCAN_TIME);
+  isScanning = true;
 }
 
-ScanCallbacks scanCallbacks;
+
 
 //********************************************
 // Screens
@@ -66,27 +99,33 @@ lv_obj_t* new_screen(lv_obj_t* parent) {
   return obj;
 }
 
-void add_discovered_device(lv_obj_t* btn_parent) {
-  lv_obj_t* device_btn = lv_btn_create(btn_parent);
-
-}
 
 void go_main() {
   if (!scr_main) {
-    scr_main = new_screen(NULL);
+    scr_main = lv_obj_create(NULL);
     lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
     lv_obj_t* scan_btn = lv_btn_create(scr_main);
-    lv_obj_align(scan_btn, LV_ALIGN_TOP_LEFT, -10, 10);
+    lv_obj_align(scan_btn, LV_ALIGN_TOP_LEFT, 10, 10);
     lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
       scanForDevices();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
-    lv_label_set_text(scan_btn_label, "...");
-    lv_obj_align_to(scan_btn_label, scan_btn, LV_ALIGN_CENTER, 0, 0);
-  }
+    lv_label_set_text(scan_btn_label, "Scan");
+    lv_obj_align_to(scan_btn_label, scan_btn, LV_ALIGN_TOP_LEFT, 0, 0);
 
+    // add scroll container for device list
+    /*lv_obj_t* scroll_container = lv_obj_create(scr_main);
+    lv_obj_align_to(scroll_container, scr_main, LV_ALIGN_CENTER, 10, 10);
+    lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
+    lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scroll_container, 0, 0);
+    lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
+    */
+  }
   lv_screen_load(scr_main);
 }
 
@@ -99,12 +138,12 @@ void setup() {
 
   // Initialize LVGL and display
   LVGL_CYD::begin(SCREEN_ORIENTATION);
-  // Setup BLE scanning
-  pScan = NimBLEDevice::getScan();
-  pScan->setScanCallbacks(&scanCallbacks);
-  pScan->setInterval(BLE_SCAN_INTERVAL);
-  pScan->setWindow(BLE_SCAN_WINDOW);
-  pScan->setActiveScan(true);
+  //Setup BLE
+  NimBLEDevice::init("BMS Reader");
+  delay(200);
+  go_main();
+  delay(200);
+  //scanForDevices();
 }
 
 //********************************************
@@ -113,7 +152,4 @@ void setup() {
 void loop() {
   // Handle LVGL tasks
   lv_task_handler();
-  pScan->start(BLE_SCAN_TIME, false, true);
-  Serial.printf("count: %d", pScan->getResults().getCount());
-  delay(2000);
 }
