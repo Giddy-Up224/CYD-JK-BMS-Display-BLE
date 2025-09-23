@@ -129,10 +129,6 @@ void go_main() {
   lv_screen_load(scr_main);
 }
 
-
-//********************************************
-// Setup Function
-//********************************************
 void setup() {
   Serial.begin(115200);
 
@@ -146,9 +142,6 @@ void setup() {
   //scanForDevices();
 }
 
-//********************************************
-// Main Loop
-//********************************************
 void loop() {
   // Handle LVGL tasks
   lv_task_handler();
