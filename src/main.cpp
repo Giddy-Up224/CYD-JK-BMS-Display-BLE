@@ -26,9 +26,7 @@
 
 // Screen objects
 lv_obj_t* scr_main = nullptr;
-//lv_obj_t* new_scan_button(NULL);
-//lv_obj_t* scroll_container = nullptr;
-//lv_obj_t* lbl_header = nullptr;
+lv_obj_t* place_holder_btn = nullptr;
 
 // BLE scanning
 NimBLEScan* pScan;
@@ -49,22 +47,22 @@ std::vector<ScannedDevice> scannedDevices;
 //********************************************
 // Scanning logic
 //********************************************
-
+// I want to make this functional once I get the types figured out
 // create a button for each scanned device
-lv_obj_t* new_scan_button(lv_obj_t* parent, const char* label) {
-  lv_obj_t* list_item = lv_btn_create(parent);
-  lv_obj_set_layout(list_item, LV_FLEX_FLOW_COLUMN);
-  lv_obj_add_event_cb(list_item, [](lv_event_t* e) -> void {
-      // add function call here
-    }, LV_EVENT_CLICKED, NULL);
-
-  // label
-  lv_obj_t* list_item_lbl = lv_label_create(list_item);
-  lv_label_set_text_fmt(list_item, "%s", label);
-  lv_obj_align_to(list_item_lbl, list_item, LV_ALIGN_CENTER, 0, 0);
-  
-  return list_item;
-}
+//lv_obj_t* new_scan_button(lv_obj_t* parent, const char* label) {
+//  lv_obj_t* list_item = lv_btn_create(parent);
+//  lv_obj_set_layout(list_item, LV_FLEX_FLOW_COLUMN);
+//  lv_obj_add_event_cb(list_item, [](lv_event_t* e) -> void {
+//      // add function call here
+//    }, LV_EVENT_CLICKED, NULL);
+//
+//  // label
+//  lv_obj_t* list_item_lbl = lv_label_create(list_item);
+//  lv_label_set_text_fmt(list_item, "%s", label);
+//  lv_obj_align_to(list_item_lbl, list_item, LV_ALIGN_CENTER, 0, 0);
+//  
+//  return list_item;
+//}
 
 class ScanCallbacks : public NimBLEScanCallbacks {
     void onDiscovered(const NimBLEAdvertisedDevice* advertisedDevice) override {
