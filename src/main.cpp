@@ -26,17 +26,45 @@
 
 // Screen objects
 lv_obj_t* scr_main = nullptr;
-lv_obj_t* scroll_container = nullptr;
+//lv_obj_t* new_scan_button(NULL);
+//lv_obj_t* scroll_container = nullptr;
 //lv_obj_t* lbl_header = nullptr;
 
 // BLE scanning
 NimBLEScan* pScan;
 bool isScanning = false;
 
+// Maybe add this vector to store the scan data??
+/*
+struct ScannedDevice {
+  std::string macAddress;
+  std::string deviceName;
+  int rssi;
+  bool isConnectable;
+  const NimBLEAdvertisedDevice* advDevice; // store pointer to use for connection
+};
+std::vector<ScannedDevice> scannedDevices;
+*/
 
 //********************************************
 // Scanning logic
 //********************************************
+
+// create a button for each scanned device
+lv_obj_t* new_scan_button(lv_obj_t* parent, const char* label) {
+  lv_obj_t* list_item = lv_btn_create(parent);
+  lv_obj_set_layout(list_item, LV_FLEX_FLOW_COLUMN);
+  lv_obj_add_event_cb(list_item, [](lv_event_t* e) -> void {
+      // add function call here
+    }, LV_EVENT_CLICKED, NULL);
+
+  // label
+  lv_obj_t* list_item_lbl = lv_label_create(list_item);
+  lv_label_set_text_fmt(list_item, "%s", label);
+  lv_obj_align_to(list_item_lbl, list_item, LV_ALIGN_CENTER, 0, 0);
+  
+  return list_item;
+}
 
 class ScanCallbacks : public NimBLEScanCallbacks {
     void onDiscovered(const NimBLEAdvertisedDevice* advertisedDevice) override {
@@ -45,24 +73,17 @@ class ScanCallbacks : public NimBLEScanCallbacks {
 
     void onResult(const NimBLEAdvertisedDevice* advertisedDevice) override {
         Serial.printf("Advertised Device Result: %s \n", advertisedDevice->toString().c_str());
-
         const char* name = advertisedDevice->getName().c_str();
+        uint8_t rssi = advertisedDevice->getRSSI();
+        //uint8_t mac_addr[] {};
+        //const ble_addr_t* mac_addr = advertisedDevice->getAddress().getVal();
+        Serial.printf("Name: %s RSSI: %d\n", name, rssi);
 
-        lv_obj_t* device_btn = lv_btn_create(scr_main);
-        lv_obj_align(device_btn, LV_ALIGN_TOP_LEFT, 10, 10);
-        lv_obj_set_size(device_btn, 80, 20);
-        lv_obj_add_event_cb(device_btn, [](lv_event_t* e) -> void {
-          // add the connection function here
-        }, LV_EVENT_CLICKED, NULL);
-      
-        lv_obj_t* device_btn_label = lv_label_create(device_btn);
-        lv_label_set_text(device_btn_label, name);
-        lv_obj_align_to(device_btn_label, device_btn, LV_ALIGN_CENTER, 0, 0);
-        Serial.printf("name is: %s", name);
+
     }
 
     void onScanEnd(const NimBLEScanResults& results, int reason) override {
-        Serial.printf("Scan Ended; reason = %d", reason);
+        Serial.printf("Scan Ended; reason = %d\n", reason);
         isScanning = false;
         //pScan->setActiveScan(true);
         //pScan->start(BLE_SCAN_TIME);
@@ -70,14 +91,19 @@ class ScanCallbacks : public NimBLEScanCallbacks {
 } scanCallbacks;
 
 void scanForDevices() {
-  // Setup BLE scanning
-  pScan = NimBLEDevice::getScan();
-  pScan->setScanCallbacks(&scanCallbacks);
-  pScan->setActiveScan(isScanning);
-  pScan->setInterval(BLE_SCAN_INTERVAL);
-  pScan->setWindow(BLE_SCAN_WINDOW);
-  pScan->start(BLE_SCAN_TIME);
-  isScanning = true;
+  if(!isScanning) {
+    // Setup BLE scanning
+    isScanning = true;
+    Serial.println("Started scanning...");
+    pScan = NimBLEDevice::getScan();
+    pScan->setScanCallbacks(&scanCallbacks);
+    pScan->setActiveScan(true);
+    pScan->setInterval(BLE_SCAN_INTERVAL);
+    pScan->setWindow(BLE_SCAN_WINDOW);
+    pScan->start(BLE_SCAN_TIME);
+  }else{
+    Serial.println("Already scanning!");
+  }
 }
 
 
@@ -89,7 +115,7 @@ void scanForDevices() {
 lv_obj_t* new_screen(lv_obj_t* parent) {
   lv_obj_t* obj = lv_obj_create(parent);
   lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_style_border_width(obj, 0, 0);
   lv_obj_set_layout(obj, LV_LAYOUT_FLEX);
   lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
