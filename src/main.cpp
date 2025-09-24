@@ -84,7 +84,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
         }, LV_EVENT_CLICKED, NULL);
       
         lv_obj_t* place_holder_btn_label = lv_label_create(place_holder_btn);
-        lv_label_set_text_fmt(place_holder_btn_label, "Name: %s RSSI: %d\n", name, rssi);
+        lv_label_set_text_fmt(place_holder_btn_label, "%s  rssi: %d", name, rssi);
         lv_obj_align_to(place_holder_btn_label, place_holder_btn, LV_ALIGN_CENTER, 0, 0);
 
     }
