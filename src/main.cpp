@@ -111,6 +111,8 @@ void scanForDevices() {
 //********************************************
 // Screens
 //********************************************
+// for some reason when I use this to create a screen 
+// everything goes weird when adding buttons etc.
 // Creates a new obj to use as base screen
 lv_obj_t* new_screen(lv_obj_t* parent) {
   lv_obj_t* obj = lv_obj_create(parent);
@@ -130,16 +132,30 @@ void go_main() {
   if (!scr_main) {
     scr_main = lv_obj_create(NULL);
     lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+    lv_obj_add_flag(scr_main, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_layout(scr_main, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(scr_main, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(scr_main, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     lv_obj_t* scan_btn = lv_btn_create(scr_main);
-    lv_obj_align(scan_btn, LV_ALIGN_TOP_LEFT, 10, 10);
+    //lv_obj_align(scan_btn, LV_ALIGN_TOP_LEFT, 10, 10);
     lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
       scanForDevices();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
     lv_label_set_text(scan_btn_label, "Scan");
-    lv_obj_align_to(scan_btn_label, scan_btn, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_obj_align_to(scan_btn_label, scan_btn, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_t* place_holder_btn = lv_btn_create(scr_main);
+    //lv_obj_align(place_holder_btn, LV_ALIGN_TOP_LEFT, 10, 10);
+    lv_obj_add_event_cb(place_holder_btn, [](lv_event_t* e) -> void {
+      scanForDevices();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* place_holder_btn_label = lv_label_create(place_holder_btn);
+    lv_label_set_text(place_holder_btn_label, "Place_holder");
+    lv_obj_align_to(place_holder_btn_label, place_holder_btn, LV_ALIGN_CENTER, 0, 0);
 
     // add scroll container for device list
     /*lv_obj_t* scroll_container = lv_obj_create(scr_main);
