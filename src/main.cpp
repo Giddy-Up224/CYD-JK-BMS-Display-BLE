@@ -77,6 +77,15 @@ class ScanCallbacks : public NimBLEScanCallbacks {
         //const ble_addr_t* mac_addr = advertisedDevice->getAddress().getVal();
         Serial.printf("Name: %s RSSI: %d\n", name, rssi);
 
+        lv_obj_t* place_holder_btn = lv_btn_create(scr_main);
+        //lv_obj_align(place_holder_btn, LV_ALIGN_TOP_LEFT, 10, 10);
+        lv_obj_add_event_cb(place_holder_btn, [](lv_event_t* e) -> void {
+          // add callback here
+        }, LV_EVENT_CLICKED, NULL);
+      
+        lv_obj_t* place_holder_btn_label = lv_label_create(place_holder_btn);
+        lv_label_set_text_fmt(place_holder_btn_label, "Name: %s RSSI: %d\n", name, rssi);
+        lv_obj_align_to(place_holder_btn_label, place_holder_btn, LV_ALIGN_CENTER, 0, 0);
 
     }
 
@@ -144,16 +153,6 @@ void go_main() {
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
     lv_label_set_text(scan_btn_label, "Scan");
     lv_obj_align_to(scan_btn_label, scan_btn, LV_ALIGN_CENTER, 0, 0);
-
-    lv_obj_t* place_holder_btn = lv_btn_create(scr_main);
-    //lv_obj_align(place_holder_btn, LV_ALIGN_TOP_LEFT, 10, 10);
-    lv_obj_add_event_cb(place_holder_btn, [](lv_event_t* e) -> void {
-      scanForDevices();
-    }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t* place_holder_btn_label = lv_label_create(place_holder_btn);
-    lv_label_set_text(place_holder_btn_label, "Place_holder");
-    lv_obj_align_to(place_holder_btn_label, place_holder_btn, LV_ALIGN_CENTER, 0, 0);
 
     // add scroll container for device list
     /*lv_obj_t* scroll_container = lv_obj_create(scr_main);
