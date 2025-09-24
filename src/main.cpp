@@ -74,8 +74,9 @@ class ScanCallbacks : public NimBLEScanCallbacks {
         const char* name = advertisedDevice->getName().c_str();
         uint8_t rssi = advertisedDevice->getRSSI();
         //uint8_t mac_addr[] {};
-        //const ble_addr_t* mac_addr = advertisedDevice->getAddress().getVal();
-        Serial.printf("Name: %s RSSI: %d\n", name, rssi);
+        const char* mac_addr = advertisedDevice->getAddress().toString().c_str();
+        std::string p_mac_addr = advertisedDevice->getAddress().toString().c_str();
+        Serial.printf("Name: %s RSSI: %d MAC: %s\n", name, rssi, p_mac_addr);
 
         lv_obj_t* place_holder_btn = lv_btn_create(scr_main);
         //lv_obj_align(place_holder_btn, LV_ALIGN_TOP_LEFT, 10, 10);
