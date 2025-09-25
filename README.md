@@ -10,6 +10,11 @@ Current stage:
 - SOC, Voltage, and Current are displayed on home screen
 - Cell Voltages and Wire Resistances are available from their respective screens
 
+TODO:
+- Fix `copy_configs.py` not running at build time It was working previously with:
+*   **Commit message:** `Made config files dynamic`
+*   **Commit ID:** `b0939e873625c80cb4075dd42cbb5476437747df`
+
 Future Features:
 - List and select available devices
 - Show device name on home screen header
