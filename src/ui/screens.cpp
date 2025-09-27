@@ -521,7 +521,7 @@ void go_connect_bms() {
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
-    lv_label_set_text(scan_btn_label, LV_STR_SYMBOL_BLUETOOTH + " Scan");
+    lv_label_set_text(scan_btn_label, "Scan");
     lv_obj_center(scan_btn_label);
 
     // Create scrollable container for device list
@@ -555,7 +555,7 @@ void go_more() {
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* connect_bms_btn_label = lv_label_create(connect_bms_btn);
-    lv_label_set_text(connect_bms_btn_label, "Connect BMS");
+    lv_label_set_text(connect_bms_btn_label, "Connect Devices...");
     lv_obj_center(connect_bms_btn_label);
 
     // Add cell voltages button
