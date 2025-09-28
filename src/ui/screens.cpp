@@ -507,6 +507,66 @@ void populate_device_list() {
   scan_for_jk_devices();
 }
 
+// TODO:
+// Adapt the following to add device buttons as devices are discovered
+/*
+static lv_obj_t * add_list_button(lv_obj_t * parent, uint32_t track_id)
+{
+    uint32_t t = lv_demo_music_get_track_length(track_id);
+    char time[32];
+    lv_snprintf(time, sizeof(time), "%"LV_PRIu32":%02"LV_PRIu32, t / 60, t % 60);
+    const char * title = lv_demo_music_get_title(track_id);
+    const char * artist = lv_demo_music_get_artist(track_id);
+
+    lv_obj_t * btn = lv_obj_create(parent);
+    lv_obj_remove_style_all(btn);
+#if LV_DEMO_MUSIC_LARGE
+    lv_obj_set_size(btn, lv_pct(100), 110);
+#else
+    lv_obj_set_size(btn, lv_pct(100), 60);
+#endif
+
+    lv_obj_add_style(btn, &style_btn, 0);
+    lv_obj_add_style(btn, &style_button_pr, LV_STATE_PRESSED);
+    lv_obj_add_style(btn, &style_button_chk, LV_STATE_CHECKED);
+    lv_obj_add_style(btn, &style_button_dis, LV_STATE_DISABLED);
+    lv_obj_add_event_cb(btn, btn_click_event_cb, LV_EVENT_CLICKED, NULL);
+
+    if(track_id >= 3) {
+        lv_obj_add_state(btn, LV_STATE_DISABLED);
+    }
+
+    lv_obj_t * icon = lv_image_create(btn);
+    lv_image_set_src(icon, &img_lv_demo_music_btn_list_play);
+    lv_obj_set_grid_cell(icon, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 2);
+
+    lv_obj_t * title_label = lv_label_create(btn);
+    lv_label_set_text(title_label, title);
+    lv_obj_set_grid_cell(title_label, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_add_style(title_label, &style_title, 0);
+
+    lv_obj_t * artist_label = lv_label_create(btn);
+    lv_label_set_text(artist_label, artist);
+    lv_obj_add_style(artist_label, &style_artist, 0);
+    lv_obj_set_grid_cell(artist_label, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+
+    lv_obj_t * time_label = lv_label_create(btn);
+    lv_label_set_text(time_label, time);
+    lv_obj_add_style(time_label, &style_time, 0);
+    lv_obj_set_grid_cell(time_label, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 0, 2);
+
+    LV_IMAGE_DECLARE(img_lv_demo_music_list_border);
+    lv_obj_t * border = lv_image_create(btn);
+    lv_image_set_src(border, &img_lv_demo_music_list_border);
+    lv_image_set_inner_align(border, LV_IMAGE_ALIGN_TILE);
+    lv_obj_set_width(border, lv_pct(120));
+    lv_obj_align(border, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_add_flag(border, LV_OBJ_FLAG_IGNORE_LAYOUT);
+
+    return btn;
+}
+*/
+
 void go_connect_bms() {
   if(!scr_connect_jk_device) {
     scr_connect_jk_device = new_screen(NULL);

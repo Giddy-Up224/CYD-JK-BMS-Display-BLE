@@ -14,11 +14,17 @@
 //********************************************
 // Global Variables
 //********************************************
-Preferences user_settings;
+Preferences preferences;
+
+String mac_address1 = preferences.getString("mac1", "c8:47:80:23:4f:95");
+
+// need to figure out how to cast to correct type
+// maybe use byte array?
+const char* mac1 = (const char*)mac_address1;
 
 // BMS devices array
 JKBMS jkBmsDevices[] = {
-  JKBMS(BMS_MAC_ADDRESS_1),
+  JKBMS(mac1),
   // Add more devices here if needed
   // JKBMS(BMS_MAC_ADDRESS_2),
   // JKBMS(BMS_MAC_ADDRESS_3)
@@ -89,6 +95,7 @@ void setupUINavigation() {
 void setup() {
   Serial.begin(115200);
   lastMillis = millis();
+  preferences.begin("JK BMS", false);
 
   // Initialize LVGL and display
   LVGL_CYD::begin(SCREEN_ORIENTATION);

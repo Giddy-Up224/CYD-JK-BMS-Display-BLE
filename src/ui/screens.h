@@ -51,6 +51,9 @@ void go_rotate();
 void go_cell_voltages();
 void go_wire_resistances();
 
+// element creation functions
+static lv_obj_t * add_list_button(lv_obj_t * parent, uint32_t track_id);
+
 // Update functions
 void update_bms_display();
 
