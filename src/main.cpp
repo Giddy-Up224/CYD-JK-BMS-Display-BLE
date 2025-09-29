@@ -16,15 +16,15 @@
 //********************************************
 Preferences preferences;
 
+// get stored mac address, default to "c8:47:80:23:4f:95" if not set
+// TODO: change to use results from scanning to populate this list. 
+// Save to preferences when selected.
 String mac_address1 = preferences.getString("mac1", "c8:47:80:23:4f:95");
-
-// need to figure out how to cast to correct type
-// maybe use byte array?
-const char* mac1 = (const char*)mac_address1;
 
 // BMS devices array
 JKBMS jkBmsDevices[] = {
-  JKBMS(mac1),
+  // cast to std::string
+  JKBMS(std::string(mac_address1.c_str())),
   // Add more devices here if needed
   // JKBMS(BMS_MAC_ADDRESS_2),
   // JKBMS(BMS_MAC_ADDRESS_3)
