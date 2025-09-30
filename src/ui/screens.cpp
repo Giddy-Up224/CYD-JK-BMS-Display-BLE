@@ -500,6 +500,57 @@ void go_cell_voltages() {
 }
 
 
+void connect_selected_device() {
+
+}
+
+// Adds a button to the device list for the given device info
+// Returns the button object created
+static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char* mac_address, const char* rssi)
+{
+    lv_obj_t* btn = lv_obj_create(parent);
+    lv_obj_remove_style_all(btn);
+    lv_obj_set_size(btn, lv_pct(100), 10);
+
+    //lv_obj_add_style(btn, &style_btn, 0);
+    //lv_obj_add_style(btn, &style_button_pr, LV_STATE_PRESSED);
+    //lv_obj_add_style(btn, &style_button_chk, LV_STATE_CHECKED);
+    //lv_obj_add_style(btn, &style_button_dis, LV_STATE_DISABLED);
+    lv_obj_add_event_cb(btn, [](lv_event_t* e) -> void {
+      // add code to connect to the selected device here
+      connect_selected_device();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t * name_lbl = lv_label_create(btn);
+    lv_label_set_text(name_lbl, name);
+    lv_obj_set_grid_cell(name_lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+
+    lv_obj_t * rssi_lbl = lv_label_create(btn);
+    lv_label_set_text(rssi_lbl, rssi);
+    lv_obj_set_grid_cell(rssi_lbl, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+
+    return btn;
+}
+
+void test_add_button_to_list() {
+  if (jk_devices_scroll_container) {
+    DEBUG_PRINTLN("in list creation function!----------------------");
+    static int count = 0;
+    count++;
+    char name[] = "JK BMS";
+    char mac[] = "AA:BB:CC:DD:EE:FF";
+    char rssi[] = "-XXdBm";
+    //snprintf(name, sizeof(name), "JK BMS %d", count);
+    //snprintf(mac, sizeof(mac), "AA:BB:CC:DD:EE:%02X", count);
+    //snprintf(rssi, sizeof(rssi), "-%ddBm", 30 + count);
+    add_list_button(jk_devices_scroll_container, name, mac, rssi);
+    lv_obj_scroll_to_y(jk_devices_scroll_container, lv_obj_get_height(jk_devices_scroll_container), LV_ANIM_ON);
+    lv_obj_update_layout(jk_devices_scroll_container);
+  } else {
+    DEBUG_PRINTLN("no list or container! (Or something like that...)");
+  }
+  DEBUG_PRINTLN("done with list creation function ############");
+}
 
 void go_connect_bms() {
   if(!scr_connect_jk_device) {
@@ -512,6 +563,8 @@ void go_connect_bms() {
     lv_obj_align(scan_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
     lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
       //scan_for_jk_devices();
+      DEBUG_PRINTLN("Scan button pressed!");
+      test_add_button_to_list();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
@@ -519,13 +572,15 @@ void go_connect_bms() {
     lv_obj_center(scan_btn_label);
 
     // Create scrollable container for device list
-    lv_obj_t* scroll_container = lv_obj_create(scr_connect_jk_device);
-    lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
-    lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(scroll_container, 0, 0);
-    lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
+    jk_devices_scroll_container = lv_obj_create(scr_connect_jk_device);
+    lv_obj_set_size(jk_devices_scroll_container, lv_pct(100), lv_pct(100));
+    lv_obj_set_style_pad_all(jk_devices_scroll_container, 10, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(jk_devices_scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(jk_devices_scroll_container, 0, 0);
+    lv_obj_set_layout(jk_devices_scroll_container, LV_LAYOUT_FLEX);
+    //lv_obj_set_flex_flow(jk_devices_scroll_container, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_grow(jk_devices_scroll_container, 1);
+    lv_obj_set_scrollbar_mode(jk_devices_scroll_container, LV_SCROLLBAR_MODE_AUTO);
   }
 
   lv_label_set_text(lbl_header, "Choose Device");
