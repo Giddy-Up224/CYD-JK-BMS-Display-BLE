@@ -508,26 +508,38 @@ void connect_selected_device() {
 // Returns the button object created
 static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char* mac_address, const char* rssi)
 {
-    lv_obj_t* btn = lv_obj_create(parent);
+    lv_obj_t* btn = lv_btn_create(parent);
     lv_obj_remove_style_all(btn);
-    lv_obj_set_size(btn, lv_pct(100), 10);
+    lv_obj_set_size(btn, lv_pct(100), LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_all(btn, 4, 0);
 
+    // set button to flex row so labels are side by side
+    lv_obj_set_layout(btn, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(btn, LV_FLEX_FLOW_ROW);
+    
+    lv_obj_t * name_lbl = lv_label_create(btn);
+    lv_label_set_text(name_lbl, name);
+    //lv_obj_set_grid_cell(name_lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    
+    lv_obj_t * rssi_lbl = lv_label_create(btn);
+    lv_label_set_text(rssi_lbl, rssi);
+    //lv_obj_set_grid_cell(rssi_lbl, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    
+    lv_obj_t * mac_lbl = lv_label_create(btn);
+    lv_label_set_text(mac_lbl, mac_address);
+    //lv_obj_set_grid_cell(mac_lbl, LV_GRID_ALIGN_START, 2, 1, LV_GRID_ALIGN_CENTER, 2, 1);
+
+    lv_obj_set_style_pad_column(btn, 10, 0);
+    
     //lv_obj_add_style(btn, &style_btn, 0);
     //lv_obj_add_style(btn, &style_button_pr, LV_STATE_PRESSED);
     //lv_obj_add_style(btn, &style_button_chk, LV_STATE_CHECKED);
     //lv_obj_add_style(btn, &style_button_dis, LV_STATE_DISABLED);
+
     lv_obj_add_event_cb(btn, [](lv_event_t* e) -> void {
       // add code to connect to the selected device here
       connect_selected_device();
     }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t * name_lbl = lv_label_create(btn);
-    lv_label_set_text(name_lbl, name);
-    lv_obj_set_grid_cell(name_lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-
-    lv_obj_t * rssi_lbl = lv_label_create(btn);
-    lv_label_set_text(rssi_lbl, rssi);
-    lv_obj_set_grid_cell(rssi_lbl, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
 
     return btn;
 }
@@ -535,15 +547,15 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
 void test_add_button_to_list() {
   if (jk_devices_scroll_container) {
     DEBUG_PRINTLN("in list creation function!----------------------");
-    static int count = 0;
-    count++;
-    char name[] = "JK BMS";
-    char mac[] = "AA:BB:CC:DD:EE:FF";
-    char rssi[] = "-XXdBm";
+    //static int count = 0;
+    //count++;
+    //char name[] = "JK BMS";
+    //char mac[] = "AA:BB:CC:DD:EE:FF";
+    //char rssi[] = "-XXdBm";
     //snprintf(name, sizeof(name), "JK BMS %d", count);
     //snprintf(mac, sizeof(mac), "AA:BB:CC:DD:EE:%02X", count);
     //snprintf(rssi, sizeof(rssi), "-%ddBm", 30 + count);
-    add_list_button(jk_devices_scroll_container, name, mac, rssi);
+    add_list_button(jk_devices_scroll_container, "JK BMS", "AA:BB:CC:DD:EE:FF", "-XXdBm");
     lv_obj_scroll_to_y(jk_devices_scroll_container, lv_obj_get_height(jk_devices_scroll_container), LV_ANIM_ON);
     lv_obj_update_layout(jk_devices_scroll_container);
   } else {
