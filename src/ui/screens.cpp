@@ -500,38 +500,6 @@ void go_cell_voltages() {
 }
 
 
-void connect_selected_device() {
-
-}
-
-// Adds a button to the device list for the given device info
-// Returns the button object created
-static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char* mac_address, const char* rssi)
-{
-    lv_obj_t* btn = lv_obj_create(parent);
-    lv_obj_remove_style_all(btn);
-    lv_obj_set_size(btn, lv_pct(100), 10);
-
-    //lv_obj_add_style(btn, &style_btn, 0);
-    //lv_obj_add_style(btn, &style_button_pr, LV_STATE_PRESSED);
-    //lv_obj_add_style(btn, &style_button_chk, LV_STATE_CHECKED);
-    //lv_obj_add_style(btn, &style_button_dis, LV_STATE_DISABLED);
-    lv_obj_add_event_cb(btn, [](lv_event_t* e) -> void {
-      // add code to connect to the selected device here
-      connect_selected_device();
-    }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t * name_lbl = lv_label_create(btn);
-    lv_label_set_text(name_lbl, name);
-    lv_obj_set_grid_cell(name_lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-
-    lv_obj_t * rssi_lbl = lv_label_create(btn);
-    lv_label_set_text(rssi_lbl, rssi);
-    lv_obj_set_grid_cell(rssi_lbl, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-
-    return btn;
-}
-
 
 void go_connect_bms() {
   if(!scr_connect_jk_device) {
@@ -543,7 +511,7 @@ void go_connect_bms() {
     lv_obj_set_size(scan_btn, 120, 40);
     lv_obj_align(scan_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
     lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
-      scan_for_jk_devices();
+      //scan_for_jk_devices();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
