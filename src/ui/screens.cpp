@@ -590,7 +590,7 @@ void go_connect_bms() {
     lv_obj_set_style_bg_opa(jk_devices_scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(jk_devices_scroll_container, 0, 0);
     lv_obj_set_layout(jk_devices_scroll_container, LV_LAYOUT_FLEX);
-    //lv_obj_set_flex_flow(jk_devices_scroll_container, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_flow(jk_devices_scroll_container, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_grow(jk_devices_scroll_container, 1);
     lv_obj_set_scrollbar_mode(jk_devices_scroll_container, LV_SCROLLBAR_MODE_AUTO);
   }
