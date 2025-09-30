@@ -34,8 +34,8 @@ const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
 
 // BLE scanning
 NimBLEScan* pScan;
-unsigned long lastScanTime = 0;
 bool isScanning = false;
+unsigned long lastScanTime = 0;
 ScanCallbacks scanCallbacks;
 
 //********************************************
