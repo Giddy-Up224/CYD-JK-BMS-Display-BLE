@@ -500,8 +500,9 @@ void go_cell_voltages() {
 }
 
 
-void connect_selected_device() {
-
+void connect_selected_device(const char* mac) {
+  DEBUG_PRINTF("Connecting to device with MAC: %s\n", mac);
+  // Add code to connect to the device using the provided MAC address
 }
 
 // Adds a button to the device list for the given device info
@@ -530,6 +531,9 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
     //lv_obj_set_grid_cell(mac_lbl, LV_GRID_ALIGN_START, 2, 1, LV_GRID_ALIGN_CENTER, 2, 1);
 
     lv_obj_set_style_pad_column(btn, 10, 0);
+
+    // allocate a copy of the MAC address on the heap
+    char* mac_copy = strdup(mac_address);
     
     //lv_obj_add_style(btn, &style_btn, 0);
     //lv_obj_add_style(btn, &style_button_pr, LV_STATE_PRESSED);
@@ -538,8 +542,13 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
 
     lv_obj_add_event_cb(btn, [](lv_event_t* e) -> void {
       // add code to connect to the selected device here
-      connect_selected_device();
-    }, LV_EVENT_CLICKED, NULL);
+      const char* mac = static_cast<const char*>(lv_event_get_user_data(e));
+      if(mac) {      DEBUG_PRINTF("Button clicked for device with MAC: %s", mac); // + String(mac));
+      //connect_selected_device(mac);
+      } else {
+        DEBUG_PRINTLN("Button clicked but MAC address is NULL!");
+      }
+    }, LV_EVENT_CLICKED, mac_copy); // pass the MAC address copy as user data
 
     return btn;
 }
