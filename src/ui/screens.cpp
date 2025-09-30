@@ -509,7 +509,7 @@ void connect_selected_device() {
 static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char* mac_address, const char* rssi)
 {
     lv_obj_t* btn = lv_btn_create(parent);
-    lv_obj_remove_style_all(btn);
+    //lv_obj_remove_style_all(btn);
     lv_obj_set_size(btn, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_style_pad_all(btn, 4, 0);
 
