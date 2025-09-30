@@ -1,9 +1,7 @@
 #include "jkbms.h"
 #include "utils/utils.h"
-#include "config.h"
 
 // External references - defined in main.cpp
-extern bool isScanning;
 extern NimBLEScan* pScan;
 
 JKBMS::JKBMS(const std::string& mac) : targetMAC(mac) {}
@@ -380,24 +378,5 @@ void notifyCB(NimBLERemoteCharacteristic* pChr, uint8_t* pData, size_t length, b
       jkBmsDevices[i].handleNotification(pData, length);
       break;
     }
-  }
-}
-
-// I think I need to not use this method.
-// I need to somehow use the existing code to handle
-// ScanCallbacks
-void scan_for_devices() {
-  if(!isScanning) {
-    // Setup BLE scanning
-    isScanning = true;
-    Serial.println("Started scanning...");
-    pScan = NimBLEDevice::getScan();
-    pScan->setScanCallbacks(&scanCallbacks);
-    pScan->setActiveScan(true);
-    pScan->setInterval(BLE_SCAN_INTERVAL);
-    pScan->setWindow(BLE_SCAN_WINDOW);
-    pScan->start(BLE_SCAN_TIME);
-  }else{
-    Serial.println("Already scanning!");
   }
 }
