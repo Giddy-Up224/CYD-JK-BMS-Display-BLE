@@ -40,6 +40,7 @@ extern float battery_current;
 
 // Screen creation and navigation functions
 lv_obj_t* new_screen(lv_obj_t* parent);
+void ui_navigation_init();
 void go_main();
 void go_more();
 void go_connect_bms();

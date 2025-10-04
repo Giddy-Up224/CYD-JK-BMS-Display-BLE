@@ -38,58 +38,6 @@ unsigned long lastScanTime = 0;
 ScanCallbacks scanCallbacks;
 
 //********************************************
-// Setup UI Navigation
-//********************************************
-void setupUINavigation() {
-  // Back button callback
-  lv_obj_add_event_cb(btn_back, [](lv_event_t* e) -> void {
-    ScreenID prev = nav_pop();
-    switch (prev) {
-      case SCREEN_MAIN:
-        go_main();
-        DEBUG_PRINTLN("going to scr_main");
-        break;
-      case SCREEN_MORE:
-        go_more();
-        DEBUG_PRINTLN("going to scr_more");
-        break;
-      case SCREEN_CONNECT_JK_DEVICE:
-        go_connect_bms();
-        DEBUG_PRINTLN("going to scr_settings");
-        break;
-      case SCREEN_SETTINGS:
-        go_settings();
-        DEBUG_PRINTLN("going to scr_settings");
-        break;
-      case SCREEN_LED:
-        go_led();
-        DEBUG_PRINTLN("going to scr_led");
-        break;
-      case SCREEN_BL:
-        go_backlight();
-        DEBUG_PRINTLN("going to scr_bl");
-        break;
-      case SCREEN_TOUCH:
-        go_touch();
-        DEBUG_PRINTLN("going to scr_touch");
-        break;
-      case SCREEN_CELL_VOLTAGES:
-        go_cell_voltages();
-        DEBUG_PRINTLN("going to scr_cell_voltages");
-        break;
-      case SCREEN_CELL_RESISTANCES:
-        go_wire_resistances();
-        DEBUG_PRINTLN("going to scr_cell_resistances");
-        break;
-      default:
-        go_main();
-        DEBUG_PRINTF("%d not found! Defaulting to scr_main...", prev);
-        break;
-    }
-  }, LV_EVENT_CLICKED, NULL);
-}
-
-//********************************************
 // Setup Function
 //********************************************
 void setup() {
@@ -140,8 +88,8 @@ void setup() {
   lv_label_set_text(lbl_back_symbol, LV_SYMBOL_BACKSPACE);
   lv_obj_align(lbl_back_symbol, LV_ALIGN_TOP_MID, 5, -10);
 
-  // Setup navigation callback for back button
-  setupUINavigation();
+  // Init navigation callback for back button
+  ui_navigation_init();
 
   // Page header
   lbl_header = lv_label_create(lv_layer_top());
