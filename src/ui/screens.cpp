@@ -54,6 +54,7 @@ lv_obj_t* new_screen(lv_obj_t* parent) {
   return obj;
 }
 
+// Update BMS display with latest data from notify callback
 void update_bms_display() {
   bool connected = false;
   JKBMS* connectedBMS = nullptr;
@@ -180,6 +181,7 @@ void scr_led_cb(lv_event_t* e) {
   );
 }
 
+// LED color screen
 void go_led() {
   if (!scr_led) {
     scr_led = new_screen(NULL);
@@ -228,6 +230,7 @@ void go_led() {
   lv_screen_load(scr_led);
 }
 
+// Backlight brightness screen
 void go_backlight() {
   if (!scr_backlight) {
     scr_backlight = new_screen(NULL);
@@ -252,6 +255,7 @@ void go_backlight() {
   lv_screen_load(scr_backlight);
 }
 
+// Touch indicator screen
 void go_touch() {
   if (!scr_touch) {
     scr_touch = new_screen(NULL);
@@ -299,6 +303,7 @@ void go_touch() {
   lv_screen_load(scr_touch);
 }
 
+// Rotate display 90 degrees clockwise
 void go_rotate() {
   lv_disp_t* display = lv_disp_get_default();
   lv_display_rotation_t rotation = lv_display_get_rotation(display);
@@ -308,6 +313,7 @@ void go_rotate() {
   else lv_display_set_rotation(display, USB_LEFT);
 }
 
+// Settings screen
 void go_settings() {
   if (!scr_settings) {
     scr_settings = new_screen(NULL);
@@ -351,6 +357,7 @@ void go_settings() {
   lv_screen_load(scr_settings);
 }
 
+// Wire resistances screen
 void go_wire_resistances() {
   if (!scr_cell_resistances) {
     scr_cell_resistances = lv_obj_create(NULL);
@@ -425,6 +432,7 @@ void go_wire_resistances() {
   lv_screen_load(scr_cell_resistances);
 }
 
+// Cell voltages screen
 void go_cell_voltages() {
   if (!scr_cell_voltages) {
     scr_cell_voltages = lv_obj_create(NULL);
@@ -553,17 +561,13 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
     return btn;
 }
 
+// a test functiuon to add static buttons to the list
+// for testing the UI without needing to scan for devices
+// TODO: convert this to a real function that scans for devices
+// and adds them to the list
 void test_add_button_to_list() {
   if (jk_devices_scroll_container) {
     DEBUG_PRINTLN("in list creation function!----------------------");
-    //static int count = 0;
-    //count++;
-    //char name[] = "JK BMS";
-    //char mac[] = "AA:BB:CC:DD:EE:FF";
-    //char rssi[] = "-XXdBm";
-    //snprintf(name, sizeof(name), "JK BMS %d", count);
-    //snprintf(mac, sizeof(mac), "AA:BB:CC:DD:EE:%02X", count);
-    //snprintf(rssi, sizeof(rssi), "-%ddBm", 30 + count);
     add_list_button(jk_devices_scroll_container, "JK BMS", "AA:BB:CC:DD:EE:FF", "-XXdBm");
     lv_obj_scroll_to_y(jk_devices_scroll_container, lv_obj_get_height(jk_devices_scroll_container), LV_ANIM_ON);
     lv_obj_update_layout(jk_devices_scroll_container);
@@ -573,6 +577,7 @@ void test_add_button_to_list() {
   DEBUG_PRINTLN("done with list creation function ############");
 }
 
+// screen for selecting and connecting to JK BMS devices
 void go_connect_bms() {
   if(!scr_connect_jk_device) {
     scr_connect_jk_device = new_screen(NULL);
@@ -673,6 +678,7 @@ void go_more() {
   lv_screen_load(scr_more);
 }
 
+// Home screen
 void go_main() {
   if (!scr_main) {
     scr_main = new_screen(NULL);
