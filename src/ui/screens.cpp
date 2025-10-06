@@ -551,8 +551,9 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
     lv_obj_add_event_cb(btn, [](lv_event_t* e) -> void {
       // add code to connect to the selected device here
       const char* mac = static_cast<const char*>(lv_event_get_user_data(e));
-      if(mac) {      DEBUG_PRINTF("Button clicked for device with MAC: %s", mac); // + String(mac));
-      //connect_selected_device(mac);
+      if(mac) {
+        DEBUG_PRINTF("Button clicked for device with MAC: %s\n", mac);
+        //connect_selected_device(mac);
       } else {
         DEBUG_PRINTLN("Button clicked but MAC address is NULL!");
       }
