@@ -14,12 +14,14 @@
 //********************************************
 // Global Variables
 //********************************************
-Preferences preferences;
+
+// Create prefs object to store settings etc. 
+Preferences prefs;
 
 // get stored mac address, default to "c8:47:80:23:4f:95" if not set
 // TODO: change to use results from scanning to populate this list. 
 // Save to preferences when selected.
-String mac_address1 = preferences.getString("mac1", "c8:47:80:23:4f:95");
+String mac_address1 = prefs.getString("mac1", "c8:47:80:23:4f:95");
 
 // BMS devices array
 JKBMS jkBmsDevices[] = {
@@ -43,7 +45,7 @@ ScanCallbacks scanCallbacks;
 void setup() {
   Serial.begin(115200);
   lastMillis = millis();
-  preferences.begin("JK BMS", false);
+  prefs.begin("JK BMS", false);
 
   // Initialize LVGL and display
   LVGL_CYD::begin(SCREEN_ORIENTATION);
