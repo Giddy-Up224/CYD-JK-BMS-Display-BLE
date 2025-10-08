@@ -1,9 +1,9 @@
+#include <LVGL_CYD.h>
 #include "screens.h"
 #include "../navigation.h"
 #include "../utils/utils.h"
 #include "../config.h"
 #include "../jkbms.h"
-#include <LVGL_CYD.h>
 
 // Global LVGL elements
 lv_obj_t* soc_gauge = nullptr;
@@ -507,10 +507,14 @@ void go_cell_voltages() {
   lv_screen_load(scr_cell_voltages);
 }
 
+void save_mac_addr(const char* mac_addr) {
+  // TODO: add prefs logic here to save mac address
+}
 
 void connect_selected_device(const char* mac) {
   DEBUG_PRINTF("Connecting to device with MAC: %s\n", mac);
-  // Add code to connect to the device using the provided MAC address
+  // TODO: Add code to connect to the device using the provided MAC address
+  // TODO: read from prefs on startup if any mac addresses are saved to prefs
 }
 
 // Adds a button to the device list for the given device info
