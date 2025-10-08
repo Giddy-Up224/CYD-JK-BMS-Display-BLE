@@ -10,6 +10,7 @@
 #include "navigation.h"
 #include "jkbms.h"
 #include "ui/screens.h"
+#include "prefs.h"
 
 //********************************************
 // Global Variables
@@ -18,21 +19,7 @@
 // Create prefs object to store settings etc. 
 Preferences prefs;
 
-// get stored mac address, default to "c8:47:80:23:4f:95" if not set
-// TODO: change to use results from scanning to populate this list. 
-// Save to preferences when selected.
-String mac_address1 = prefs.getString("mac1", "c8:47:80:23:4f:95");
 
-// BMS devices array
-JKBMS jkBmsDevices[] = {
-  // cast to std::string
-  JKBMS(std::string(mac_address1.c_str())),
-  // Add more devices here if needed
-  // JKBMS(BMS_MAC_ADDRESS_2),
-  // JKBMS(BMS_MAC_ADDRESS_3)
-};
-
-const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
 
 // BLE scanning
 NimBLEScan* pScan;
@@ -46,6 +33,30 @@ void setup() {
   Serial.begin(115200);
   lastMillis = millis();
   prefs.begin("JK BMS", false);
+
+  // get stored mac address, default to "c8:47:80:23:4f:95" if not set
+  // TODO: change to use results from scanning to populate this list. 
+  // Save to preferences when selected.
+  //String mac_address1 = prefs.getString("mac1", "c8:47:80:23:4f:95");
+  char mac_addr [18];
+  
+  if(prefs.isKey("mac1")) {
+      prefs.getString("mac1", mac_addr, sizeof(mac_addr));
+  } else {
+      strncpy(mac_addr, "c8:47:80:23:4f:95", sizeof(mac_addr));
+      mac_addr[sizeof(mac_addr)-1] = '\0'; // Ensure null-termination
+  }
+  
+  // BMS devices array
+  JKBMS jkBmsDevices[] = {
+    // cast to std::string
+    JKBMS(mac_addr),
+    // Add more devices here if needed
+    // JKBMS(BMS_MAC_ADDRESS_2),
+    // JKBMS(BMS_MAC_ADDRESS_3)
+  };
+
+const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
 
   // Initialize LVGL and display
   LVGL_CYD::begin(SCREEN_ORIENTATION);
