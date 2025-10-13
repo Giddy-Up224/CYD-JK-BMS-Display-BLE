@@ -6,6 +6,11 @@ This project is based on [peff74/Arduino-jk-bms](https://github.com/peff74/Ardui
 
 
 Current stage:
+- Changing from static MAC to storing MAc addresses in Preferences and using scan results for
+populating available device list.
+    - If no devices are stored in memory, do not scan until the scan page is loaded.
+    - If there are devices saved in Preferences, try connecting to them on boot.
+    - Allow forgetting devices (delete from Preferences)
 - Continuing work on converting to LVGL instead of the webserver/webpage.
 - SOC, Voltage, and Current are displayed on home screen
 - Cell Voltages and Wire Resistances are available from their respective screens
