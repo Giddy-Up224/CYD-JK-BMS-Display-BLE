@@ -96,13 +96,10 @@ public:
   void onDisconnect(NimBLEClient* pClient, int reason);
 };
 
-class ScanCallbacks : public NimBLEScanCallbacks {
-public:
-  void onResult(const NimBLEAdvertisedDevice* advertisedDevice);
-};
-
 // Global callback function for notifications
 void notifyCB(NimBLERemoteCharacteristic* pChr, uint8_t* pData, size_t length, bool isNotify);
+
+void scanForDevices();
 
 // Global BMS device array - defined in main.cpp
 extern JKBMS jkBmsDevices[];

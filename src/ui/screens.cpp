@@ -595,7 +595,8 @@ void go_connect_bms() {
     lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
       //scan_for_jk_devices();
       DEBUG_PRINTLN("Scan button pressed!");
-      test_add_button_to_list();
+      //test_add_button_to_list();
+      scanForDevices();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* scan_btn_label = lv_label_create(scan_btn);

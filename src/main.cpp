@@ -39,7 +39,6 @@ const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
 // BLE scanning
 NimBLEScan* pScan;
 unsigned long lastScanTime = 0;
-ScanCallbacks scanCallbacks;
 
 //********************************************
 // Setup Function
@@ -124,11 +123,11 @@ void setup() {
   NimBLEDevice::setPower(3);
 
   // Setup BLE scanning
-  pScan = NimBLEDevice::getScan();
-  pScan->setScanCallbacks(&scanCallbacks);
-  pScan->setInterval(BLE_SCAN_INTERVAL);
-  pScan->setWindow(BLE_SCAN_WINDOW);
-  pScan->setActiveScan(true);
+  //pScan = NimBLEDevice::getScan();
+  //pScan->setScanCallbacks(&scanCallbacks);
+  //pScan->setInterval(BLE_SCAN_INTERVAL);
+  //pScan->setWindow(BLE_SCAN_WINDOW);
+  //pScan->setActiveScan(true);
 }
 
 //********************************************
@@ -180,7 +179,7 @@ void loop() {
   // Start scan if not all devices are connected
   if (connectedCount < bmsDeviceCount && (millis() - lastScanTime >= BLE_SCAN_PERIOD)) {
     DEBUG_PRINTLN("Starting scan...");
-    pScan->start(BLE_SCAN_TIMEOUT, false, true);
+    pScan->start(BLE_SCAN_TIME, false, true);
     lastScanTime = millis();
   }
 

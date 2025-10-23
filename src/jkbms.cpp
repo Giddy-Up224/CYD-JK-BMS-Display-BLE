@@ -1,8 +1,15 @@
 #include "jkbms.h"
 #include "utils/utils.h"
+#include "config.h"
+
+
+// Global variables
+bool isScanning = false;
 
 // External references - defined in main.cpp
+// TODO: move to jkbms.h
 extern NimBLEScan* pScan;
+
 
 JKBMS::JKBMS(const std::string& mac) : targetMAC(mac) {}
 
@@ -358,18 +365,37 @@ void ClientCallbacks::onDisconnect(NimBLEClient* pClient, int reason) {
   bms->doConnect = false;
 }
 
-void ScanCallbacks::onResult(const NimBLEAdvertisedDevice* advertisedDevice) {
-  DEBUG_PRINTF("BLE Device found: %s\n", advertisedDevice->toString().c_str());
-  for (int i = 0; i < bmsDeviceCount; i++) {
-    if (jkBmsDevices[i].targetMAC.empty()) continue;  // Skip empty MAC addresses
-    if (advertisedDevice->getAddress().toString() == jkBmsDevices[i].targetMAC && !jkBmsDevices[i].connected && !jkBmsDevices[i].doConnect) {
-      DEBUG_PRINTF("Found target device: %s\n", jkBmsDevices[i].targetMAC.c_str());
-      jkBmsDevices[i].advDevice = advertisedDevice;
-      jkBmsDevices[i].doConnect = true;
-      NimBLEDevice::getScan()->stop();
-    }
+class ScanCallbacks : public NimBLEScanCallbacks {
+  void onDiscovered(const NimBLEAdvertisedDevice* advertisedDevice) override {
+      Serial.printf("Discovered Advertised Device: %s \n", advertisedDevice->toString().c_str());
   }
-}
+
+  void onResult(const NimBLEAdvertisedDevice* advertisedDevice) override {
+    DEBUG_PRINTF("BLE Device found: %s\n", advertisedDevice->toString().c_str());
+    for (int i = 0; i < bmsDeviceCount; i++) {
+      if (jkBmsDevices[i].targetMAC.empty()) continue;  // Skip empty MAC addresses
+      if (advertisedDevice->getAddress().toString() == jkBmsDevices[i].targetMAC && !jkBmsDevices[i].connected && !jkBmsDevices[i].doConnect) {
+        DEBUG_PRINTF("Found target device: %s\n", jkBmsDevices[i].targetMAC.c_str());
+        jkBmsDevices[i].advDevice = advertisedDevice;
+        jkBmsDevices[i].doConnect = true;
+        NimBLEDevice::getScan()->stop();
+      }
+    }
+    // TODO: Make the following info available to screens.cpp to use the results
+    // of the scan to populate the device list. Filter the devices to JK devices.
+    DEBUG_PRINTF("Advertised Device Result: %s \n", advertisedDevice->toString().c_str());
+    const char* name = advertisedDevice->getName().c_str();
+    uint8_t rssi = advertisedDevice->getRSSI();
+    const char* mac_addr = advertisedDevice->getAddress().toString().c_str();
+    std::string p_mac_addr = advertisedDevice->getAddress().toString().c_str();
+    DEBUG_PRINTF("Name: %s RSSI: %d MAC: %s\n", name, rssi, p_mac_addr);
+    }
+
+    void onScanEnd(const NimBLEScanResults& results, int reason) override {
+      Serial.printf("Scan Ended; reason = %d\n", reason);
+      isScanning = false;
+    }
+} scanCallbacks;
 
 void notifyCB(NimBLERemoteCharacteristic* pChr, uint8_t* pData, size_t length, bool isNotify) {
   DEBUG_PRINTLN("Notification received...");
@@ -378,5 +404,22 @@ void notifyCB(NimBLERemoteCharacteristic* pChr, uint8_t* pData, size_t length, b
       jkBmsDevices[i].handleNotification(pData, length);
       break;
     }
+  }
+}
+
+// Scan for JK devices
+void scanForDevices() {
+  if(!isScanning) {
+    // Setup BLE scanning
+    isScanning = true;
+    DEBUG_PRINTLN("Scan button pressed! Starting scan...");
+    pScan = NimBLEDevice::getScan();
+    pScan->setScanCallbacks(&scanCallbacks);
+    pScan->setActiveScan(true);
+    pScan->setInterval(BLE_SCAN_INTERVAL);
+    pScan->setWindow(BLE_SCAN_WINDOW);
+    pScan->start(BLE_SCAN_TIME);
+  }else{
+    DEBUG_PRINTLN("Already scanning!");
   }
 }

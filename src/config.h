@@ -19,7 +19,7 @@
 // BLE Scan settings
 #define BLE_SCAN_INTERVAL 100
 #define BLE_SCAN_WINDOW 100
-#define BLE_SCAN_TIMEOUT 5000   // Scan for 5 seconds
+#define BLE_SCAN_TIME 5000   // Scan for 5 seconds
 #define BLE_SCAN_PERIOD 10000    // Start new scan every 10 seconds if not connected
 
 // BMS connection settings
