@@ -385,15 +385,9 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     // of the scan to populate the device list. Filter the devices to JK devices by
     // using the manufacturer data definitions in jkbms.h
 
+    // For debug purposes
     std::string res = "Name: " + advertisedDevice->getName() + ", Address: " + advertisedDevice->getAddress().toString();
 
-    if (advertisedDevice->haveAppearance()) {
-      char val[6];
-      snprintf(val, sizeof(val), "%d", advertisedDevice->getAppearance());
-      res += ", appearance: ";
-      res += val;
-    }
-    
     if (advertisedDevice->haveManufacturerData()) {
       auto mfgData  = advertisedDevice->getManufacturerData();
       res          += ", manufacturer data: ";
