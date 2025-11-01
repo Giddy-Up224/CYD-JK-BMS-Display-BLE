@@ -371,6 +371,9 @@ void go_settings() {
       nav_push(ScreenID::SCREEN_SETTINGS);
       go_misc_settings();
     }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* chb_bms_auto_conn_on_boot = lv_checkbox_create(scr_settings);
+    lv_checkbox_set_text(chb_bms_auto_conn_on_boot, "Auto conn BMS on boot");
   }
 
   lv_label_set_text(lbl_header, "Settings");
