@@ -372,6 +372,7 @@ void go_settings() {
       go_misc_settings();
     }, LV_EVENT_CLICKED, NULL);
 
+    // TODO: Implement checkbox state
     lv_obj_t* chb_bms_auto_conn_on_boot = lv_checkbox_create(scr_settings);
     lv_checkbox_set_text(chb_bms_auto_conn_on_boot, "Auto conn BMS on boot");
   }
