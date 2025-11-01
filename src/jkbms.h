@@ -104,3 +104,11 @@ void scanForDevices();
 // Global BMS device array - defined in main.cpp
 extern JKBMS jkBmsDevices[];
 extern const int bmsDeviceCount;
+
+
+// TODO: change this to a struct or enum to
+// filter the scan results using these values.
+// manufacturer data definitions
+//         BMS Model #  manufacturer data
+// This is throwing errors about multiple instance for some reason????
+//const char* BMS_B1A8S10P = "650b88a0c84780234f95";

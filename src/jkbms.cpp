@@ -367,11 +367,11 @@ void ClientCallbacks::onDisconnect(NimBLEClient* pClient, int reason) {
 
 class ScanCallbacks : public NimBLEScanCallbacks {
   void onDiscovered(const NimBLEAdvertisedDevice* advertisedDevice) override {
-      Serial.printf("Discovered Advertised Device: %s \n", advertisedDevice->toString().c_str());
+    //DEBUG_PRINTF("Discovered Advertised Device: %s \n", advertisedDevice->toString().c_str());
   }
 
   void onResult(const NimBLEAdvertisedDevice* advertisedDevice) override {
-    DEBUG_PRINTF("BLE Device found: %s\n", advertisedDevice->toString().c_str());
+    //DEBUG_PRINTF("BLE Device found: %s\n", advertisedDevice->toString().c_str());
     for (int i = 0; i < bmsDeviceCount; i++) {
       if (jkBmsDevices[i].targetMAC.empty()) continue;  // Skip empty MAC addresses
       if (advertisedDevice->getAddress().toString() == jkBmsDevices[i].targetMAC && !jkBmsDevices[i].connected && !jkBmsDevices[i].doConnect) {
@@ -382,17 +382,35 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       }
     }
     // TODO: Make the following info available to screens.cpp to use the results
-    // of the scan to populate the device list. Filter the devices to JK devices.
-    DEBUG_PRINTF("Advertised Device Result: %s \n", advertisedDevice->toString().c_str());
-    const char* name = advertisedDevice->getName().c_str();
-    uint8_t rssi = advertisedDevice->getRSSI();
-    const char* mac_addr = advertisedDevice->getAddress().toString().c_str();
-    std::string p_mac_addr = advertisedDevice->getAddress().toString().c_str();
-    DEBUG_PRINTF("Name: %s RSSI: %d MAC: %s\n", name, rssi, p_mac_addr);
+    // of the scan to populate the device list. Filter the devices to JK devices by
+    // using the manufacturer data definitions in jkbms.h
+
+    std::string res = "Name: " + advertisedDevice->getName() + ", Address: " + advertisedDevice->getAddress().toString();
+
+    if (advertisedDevice->haveAppearance()) {
+      char val[6];
+      snprintf(val, sizeof(val), "%d", advertisedDevice->getAppearance());
+      res += ", appearance: ";
+      res += val;
+    }
+    
+    if (advertisedDevice->haveManufacturerData()) {
+      auto mfgData  = advertisedDevice->getManufacturerData();
+      res          += ", manufacturer data: ";
+      res += NimBLEUtils::dataToHexString(reinterpret_cast<const uint8_t*>(mfgData.data()), mfgData.length());
     }
 
+    DEBUG_PRINTF("\nDevice info: %s", res.c_str());
+
+    // Following is some commented code that may come in handy in the future:
+    //const char* mac_addr = advertisedDevice->getAddress().toString().c_str();
+    //uint8_t rssi = advertisedDevice->getRSSI();
+    //std::string p_mac_addr = advertisedDevice->getAddress().toString().c_str();
+    //DEBUG_PRINTF("Name: %s RSSI: %d MAC: %s\n Mfgr data: %s", name, rssi, mac_addr, mfgr_data_str);
+  }
+
     void onScanEnd(const NimBLEScanResults& results, int reason) override {
-      Serial.printf("Scan Ended; reason = %d\n", reason);
+      DEBUG_PRINTF("\nScan Ended; reason = %d\n", reason);
       isScanning = false;
     }
 } scanCallbacks;
