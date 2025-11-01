@@ -24,6 +24,7 @@ lv_obj_t* jk_device_list = nullptr;
 lv_obj_t* jk_devices_scroll_container = nullptr;
 lv_obj_t* scr_more = nullptr;
 lv_obj_t* scr_settings = nullptr;
+lv_obj_t* scr_misc_settings = nullptr;
 lv_obj_t* btn_back = nullptr;
 lv_obj_t* btn_exit = nullptr;
 lv_obj_t* lbl_header = nullptr;
@@ -313,41 +314,62 @@ void go_rotate() {
   else lv_display_set_rotation(display, USB_LEFT);
 }
 
+// Misc settings screen
+void go_misc_settings() {
+  if (!scr_misc_settings) {
+    scr_misc_settings = new_screen(NULL);
+    lv_obj_set_size(scr_misc_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+
+    lv_obj_t* btn_led = lv_button_create(scr_misc_settings);
+    lv_obj_t* lbl_led = lv_label_create(btn_led);
+    lv_label_set_text(lbl_led, "RGB LED color");
+    lv_obj_add_event_cb(btn_led, [](lv_event_t* e) -> void {
+      nav_push(ScreenID::SCREEN_MISC_SETTINGS);
+      go_led();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* btn_bl = lv_button_create(scr_misc_settings);
+    lv_obj_t* lbl_bl = lv_label_create(btn_bl);
+    lv_label_set_text(lbl_bl, "Backlight brightness");
+    lv_obj_add_event_cb(btn_bl, [](lv_event_t* e) -> void {
+      nav_push(ScreenID::SCREEN_MISC_SETTINGS);
+      go_backlight();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* btn_touch = lv_button_create(scr_misc_settings);
+    lv_obj_t* lbl_touch = lv_label_create(btn_touch);
+    lv_label_set_text(lbl_touch, "Touch indicator");
+    lv_obj_add_event_cb(btn_touch, [](lv_event_t* e) -> void {
+      nav_push(ScreenID::SCREEN_MISC_SETTINGS);
+      go_touch();
+    }, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t* btn_rotate = lv_button_create(scr_misc_settings);
+    lv_obj_t* lbl_rotate = lv_label_create(btn_rotate);
+    lv_label_set_text(lbl_rotate, "Rotate display");
+    lv_obj_add_event_cb(btn_rotate, [](lv_event_t* e) -> void {
+      go_rotate();
+    }, LV_EVENT_CLICKED, NULL);
+  }
+
+  lv_label_set_text(lbl_header, "Misc Settings");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_screen_load(scr_misc_settings);
+}
+
 // Settings screen
 void go_settings() {
   if (!scr_settings) {
     scr_settings = new_screen(NULL);
     lv_obj_set_size(scr_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    lv_obj_t* btn_led = lv_button_create(scr_settings);
-    lv_obj_t* lbl_led = lv_label_create(btn_led);
-    lv_label_set_text(lbl_led, "RGB LED color");
-    lv_obj_add_event_cb(btn_led, [](lv_event_t* e) -> void {
+    lv_obj_t* btn_misc_settings = lv_button_create(scr_settings);
+    lv_obj_t* lbl_misc_settings = lv_label_create(btn_misc_settings);
+    lv_label_set_text(lbl_misc_settings, "Misc Settings");
+    lv_obj_add_event_cb(btn_misc_settings, [](lv_event_t* e) -> void {
       nav_push(ScreenID::SCREEN_SETTINGS);
-      go_led();
-    }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t* btn_bl = lv_button_create(scr_settings);
-    lv_obj_t* lbl_bl = lv_label_create(btn_bl);
-    lv_label_set_text(lbl_bl, "Backlight brightness");
-    lv_obj_add_event_cb(btn_bl, [](lv_event_t* e) -> void {
-      nav_push(ScreenID::SCREEN_SETTINGS);
-      go_backlight();
-    }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t* btn_touch = lv_button_create(scr_settings);
-    lv_obj_t* lbl_touch = lv_label_create(btn_touch);
-    lv_label_set_text(lbl_touch, "Touch indicator");
-    lv_obj_add_event_cb(btn_touch, [](lv_event_t* e) -> void {
-      nav_push(ScreenID::SCREEN_SETTINGS);
-      go_touch();
-    }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t* btn_rotate = lv_button_create(scr_settings);
-    lv_obj_t* lbl_rotate = lv_label_create(btn_rotate);
-    lv_label_set_text(lbl_rotate, "Rotate display");
-    lv_obj_add_event_cb(btn_rotate, [](lv_event_t* e) -> void {
-      go_rotate();
+      go_misc_settings();
     }, LV_EVENT_CLICKED, NULL);
   }
 
@@ -752,11 +774,15 @@ void handle_back_navigation() {
       break;
     case SCREEN_CONNECT_JK_DEVICE:
       go_connect_bms();
-      DEBUG_PRINTLN("going to scr_settings");
+      DEBUG_PRINTLN("going to scr_connect_bms");
       break;
     case SCREEN_SETTINGS:
       go_settings();
       DEBUG_PRINTLN("going to scr_settings");
+      break;
+    case SCREEN_MISC_SETTINGS:
+      go_misc_settings();
+      DEBUG_PRINTLN("going to scr_misc_settings");
       break;
     case SCREEN_LED:
       go_led();
