@@ -385,16 +385,25 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     // of the scan to populate the device list. Filter the devices to JK devices by
     // using the manufacturer data definitions in jkbms.h
 
+    // Device types
+    std::string BMS_B1A8S10P = "650b88a0c84780234f95";
+
     // For debug purposes
     std::string res = "Name: " + advertisedDevice->getName() + ", Address: " + advertisedDevice->getAddress().toString();
 
     if (advertisedDevice->haveManufacturerData()) {
       auto mfgData  = advertisedDevice->getManufacturerData();
       res          += ", manufacturer data: ";
-      res += NimBLEUtils::dataToHexString(reinterpret_cast<const uint8_t*>(mfgData.data()), mfgData.length());
+      std::string str_mfgData = NimBLEUtils::dataToHexString(reinterpret_cast<const uint8_t*>(mfgData.data()), mfgData.length());
+      res += str_mfgData;
+      if(strcmp(BMS_B1A8S10P.c_str(), str_mfgData.c_str())) {
+        DEBUG_PRINTLN("Found JK device!");
+      }
     }
 
-    DEBUG_PRINTF("\nDevice info: %s", res.c_str());
+    DEBUG_PRINTF("Device info: %s\n", res.c_str());
+
+    
 
     // Following is some commented code that may come in handy in the future:
     //const char* mac_addr = advertisedDevice->getAddress().toString().c_str();
@@ -404,7 +413,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
   }
 
     void onScanEnd(const NimBLEScanResults& results, int reason) override {
-      DEBUG_PRINTF("\nScan Ended; reason = %d\n", reason);
+      DEBUG_PRINTF("Scan Ended; reason = %d\n", reason);
       isScanning = false;
     }
 } scanCallbacks;

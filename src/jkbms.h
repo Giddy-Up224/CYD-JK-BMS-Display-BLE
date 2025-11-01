@@ -111,4 +111,4 @@ extern const int bmsDeviceCount;
 // manufacturer data definitions
 //         BMS Model #  manufacturer data
 // This is throwing errors about multiple instance for some reason????
-//const char* BMS_B1A8S10P = "650b88a0c84780234f95";
+//std::string BMS_B1A8S10P = "650b88a0c84780234f95";
