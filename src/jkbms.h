@@ -104,5 +104,5 @@ void scanForDevices();
 // Global BMS device array - defined in main.cpp
 extern JKBMS jkBmsDevices[];
 extern const int bmsDeviceCount;
-
+extern NimBLEScan* pScan; // defined in jkbms.cpp, also used in main.cpp
 extern std::string BMS_B1A8S10P;

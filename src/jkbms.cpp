@@ -5,10 +5,8 @@
 
 // Global variables
 bool isScanning = false;
-
-// External references - defined in main.cpp
-// TODO: move to jkbms.h
-extern NimBLEScan* pScan;
+// Appwide global vars
+NimBLEScan* pScan;
 
 
 JKBMS::JKBMS(const std::string& mac) : targetMAC(mac) {}

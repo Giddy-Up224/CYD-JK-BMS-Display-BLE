@@ -37,7 +37,6 @@ JKBMS jkBmsDevices[] = {
 const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
 
 // BLE scanning
-NimBLEScan* pScan;
 unsigned long lastScanTime = 0;
 
 //********************************************
