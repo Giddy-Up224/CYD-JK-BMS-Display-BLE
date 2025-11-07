@@ -545,9 +545,12 @@ void connect_selected_device(const char* mac) {
 
 // Adds a button to the device list for the given device info
 // Returns the button object created
-static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char* mac_address, const char* rssi)
+static lv_obj_t* create_device_list_button(const char* name, const char* mac_address)
 {
-    lv_obj_t* btn = lv_btn_create(parent);
+  if (jk_devices_scroll_container) {
+    DEBUG_PRINTLN("Adding button...");
+
+    lv_obj_t* btn = lv_btn_create(jk_devices_scroll_container);
     //lv_obj_remove_style_all(btn);
     lv_obj_set_size(btn, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_style_pad_all(btn, 4, 0);
@@ -560,8 +563,8 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
     lv_label_set_text(name_lbl, name);
     //lv_obj_set_grid_cell(name_lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     
-    lv_obj_t * rssi_lbl = lv_label_create(btn);
-    lv_label_set_text(rssi_lbl, rssi);
+    //lv_obj_t * rssi_lbl = lv_label_create(btn);
+    //lv_label_set_text(rssi_lbl, rssi);
     //lv_obj_set_grid_cell(rssi_lbl, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     
     lv_obj_t * mac_lbl = lv_label_create(btn);
@@ -588,24 +591,27 @@ static lv_obj_t* add_list_button(lv_obj_t* parent, const char* name, const char*
         DEBUG_PRINTLN("Button clicked but MAC address is NULL!");
       }
     }, LV_EVENT_CLICKED, mac_copy); // pass the MAC address copy as user data
-
+    DEBUG_PRINTLN("Added device button to list!");
     return btn;
+  } else {
+    DEBUG_PRINTLN("no list or container! (Or something like that...)");
+  }
 }
 
 // a test functiuon to add static buttons to the list
 // for testing the UI without needing to scan for devices
 // TODO: convert this to a real function that scans for devices
 // and adds them to the list
-void test_add_button_to_list() {
+void add_button_to_list() {
   if (jk_devices_scroll_container) {
-    DEBUG_PRINTLN("in list creation function!----------------------");
-    add_list_button(jk_devices_scroll_container, "JK BMS", "AA:BB:CC:DD:EE:FF", "-XXdBm");
+    DEBUG_PRINTLN("Adding button...");
+    create_device_list_button("JK BMS", "AA:BB:CC:DD:EE:FF");
     lv_obj_scroll_to_y(jk_devices_scroll_container, lv_obj_get_height(jk_devices_scroll_container), LV_ANIM_ON);
     lv_obj_update_layout(jk_devices_scroll_container);
   } else {
     DEBUG_PRINTLN("no list or container! (Or something like that...)");
   }
-  DEBUG_PRINTLN("done with list creation function ############");
+  DEBUG_PRINTLN("Added device button to list!");
 }
 
 // screen for selecting and connecting to JK BMS devices
@@ -621,7 +627,6 @@ void go_connect_bms() {
     lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
       //scan_for_jk_devices();
       DEBUG_PRINTLN("Scan button pressed!");
-      //test_add_button_to_list();
       scanForDevices();
     }, LV_EVENT_CLICKED, NULL);
 

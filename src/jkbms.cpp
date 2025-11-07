@@ -1,6 +1,7 @@
 #include "jkbms.h"
 #include "utils/utils.h"
 #include "config.h"
+#include "ui/screens.h"
 
 
 // Global variables
@@ -380,14 +381,14 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       }
     }
     // TODO: Make the following info available to screens.cpp to use the results
-    // of the scan to populate the device list. Filter the devices to JK devices by
-    // using the manufacturer data definitions in jkbms.h
+    // of the scan to populate the device list.
 
-    std::string name = advertisedDevice->getName();
-    std::string address = advertisedDevice->getAddress().toString();
+    std::string deviceName = advertisedDevice->getName();
+    std::string deviceAddress = advertisedDevice->getAddress().toString();
+    uint8_t deviceRssi = advertisedDevice->getRSSI();
 
     // For debug purposes
-    std::string res = "Name: " + name + ", Address: " + address;
+    std::string res = "Name: " + deviceName + ", Address: " + deviceAddress;
 
     if (advertisedDevice->haveManufacturerData()) {
       auto mfgData  = advertisedDevice->getManufacturerData();
@@ -401,6 +402,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       if(strcmp(BMS_B1A8S10P.c_str(), str_mfgData.c_str())) {
         DEBUG_PRINTF("Found JK device! %s\n", res.c_str());
         // TODO: add logic to make device info available to screens for display in the list
+        create_device_list_button(deviceName.c_str(), deviceAddress.c_str());
       }
     }
 

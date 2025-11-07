@@ -106,3 +106,5 @@ extern JKBMS jkBmsDevices[];
 extern const int bmsDeviceCount;
 extern NimBLEScan* pScan; // defined in jkbms.cpp, also used in main.cpp
 extern std::string BMS_B1A8S10P;
+extern std::string deviceName;    // defined in jkbms.cpp
+extern std::string deviceAddress; // defined in jkbms.cpp
