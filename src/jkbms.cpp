@@ -383,10 +383,6 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     // of the scan to populate the device list. Filter the devices to JK devices by
     // using the manufacturer data definitions in jkbms.h
 
-    // Device types (add more in future)
-    // TODO: Create struct or enum to allow more device types
-    std::string BMS_B1A8S10P = "650b88a0c84780234f95";
-
     std::string name = advertisedDevice->getName();
     std::string address = advertisedDevice->getAddress().toString();
 
@@ -398,6 +394,9 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       res          += ", manufacturer data: ";
       std::string str_mfgData = NimBLEUtils::dataToHexString(reinterpret_cast<const uint8_t*>(mfgData.data()), mfgData.length());
       res += str_mfgData;
+      // Device types (add more in future)
+      // TODO: Create struct, class, or enum to allow more device types
+      std::string BMS_B1A8S10P = "650b88a0c84780234f95";
       // Filter to JK devices
       if(strcmp(BMS_B1A8S10P.c_str(), str_mfgData.c_str())) {
         DEBUG_PRINTF("Found JK device! %s\n", res.c_str());
