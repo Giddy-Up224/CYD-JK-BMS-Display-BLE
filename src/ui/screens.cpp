@@ -545,7 +545,7 @@ void connect_selected_device(const char* mac) {
 
 // Adds a button to the device list for the given device info
 // Returns the button object created
-static lv_obj_t* create_device_list_button(const char* name, const char* mac_address)
+lv_obj_t* create_device_list_button(const char* name, const char* mac_address)
 {
   if (jk_devices_scroll_container) {
     DEBUG_PRINTLN("Adding button...");
@@ -596,6 +596,7 @@ static lv_obj_t* create_device_list_button(const char* name, const char* mac_add
   } else {
     DEBUG_PRINTLN("no list or container! (Or something like that...)");
   }
+  return nullptr;
 }
 
 // a test functiuon to add static buttons to the list
