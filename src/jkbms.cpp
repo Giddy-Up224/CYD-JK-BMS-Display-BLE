@@ -439,7 +439,7 @@ void scanForDevices() {
   if(!isScanning) {
     // Setup BLE scanning
     isScanning = true;
-    DEBUG_PRINTLN("Scan button pressed! Starting scan...");
+    DEBUG_PRINTLN("Starting scan...");
     pScan = NimBLEDevice::getScan();
     pScan->setScanCallbacks(&scanCallbacks);
     pScan->setActiveScan(true);

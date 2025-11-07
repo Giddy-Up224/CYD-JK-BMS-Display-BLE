@@ -121,12 +121,7 @@ void setup() {
   NimBLEDevice::init("MultiJKBMS-Client");
   NimBLEDevice::setPower(3);
 
-  // Setup BLE scanning
-  //pScan = NimBLEDevice::getScan();
-  //pScan->setScanCallbacks(&scanCallbacks);
-  //pScan->setInterval(BLE_SCAN_INTERVAL);
-  //pScan->setWindow(BLE_SCAN_WINDOW);
-  //pScan->setActiveScan(true);
+  scanForDevices();
 }
 
 //********************************************
@@ -155,7 +150,7 @@ void loop() {
 
     // Connect to BMS if needed
     if (jkBmsDevices[i].doConnect && !jkBmsDevices[i].connected) {
-      DEBUG_PRINTF("Attempting to connect to BMS %d (%s)...\n", i, jkBmsDevices[i].targetMAC.c_str());
+      DEBUG_PRINTF("Attempting to connect to: %d (%s)...\n", i, jkBmsDevices[i].targetMAC.c_str());
       if (jkBmsDevices[i].connectToServer()) {
         DEBUG_PRINTF("%s connected successfully\n", jkBmsDevices[i].targetMAC.c_str());
       } else {
