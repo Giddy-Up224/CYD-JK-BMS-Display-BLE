@@ -384,9 +384,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     // using the manufacturer data definitions in jkbms.h
 
     // Device types (add more in future)
-    // TODO: 
-    // - Move to jkbms.h and create struct or enum instead
-    // - Add more device types
+    // TODO: Create struct or enum to allow more device types
     std::string BMS_B1A8S10P = "650b88a0c84780234f95";
 
     std::string name = advertisedDevice->getName();
