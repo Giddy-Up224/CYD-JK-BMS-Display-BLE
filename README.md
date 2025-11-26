@@ -66,3 +66,7 @@ If you have any questions or simply want to share how you've used this repo, ple
 ## Credits
 
 Thanks to [@peff74](https://github.com/peff74/), FINALLY a solution that actually has the backend working out of the box!
+
+## References
+
+* Here's a potentially useful library for CYD: https://github.com/rzeldent/esp32-smartdisplay
