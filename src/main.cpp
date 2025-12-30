@@ -15,6 +15,8 @@
 //********************************************
 // Global Variables
 //********************************************
+#define BMS_MAC_ADDRESS_1 "c8:47:80:23:4f:95"
+#define BMS_MAC_ADDRESS_2 "c8:47:80:3d:6f:b5"
 
 // Create prefs object to store settings etc. 
 Preferences prefs;
@@ -23,14 +25,14 @@ Preferences prefs;
 // TODO: change to use results from scanning to populate this list. 
 // Save to preferences when selected.
 //String mac_address1 = prefs.getString("mac1", "c8:47:80:23:4f:95");
-char mac_addr [18];
+//char mac_addr [18];
   
 // BMS devices array
 JKBMS jkBmsDevices[] = {
   // cast to std::string
-  JKBMS(mac_addr),
+  JKBMS(BMS_MAC_ADDRESS_1),
+  JKBMS(BMS_MAC_ADDRESS_2),
   // Add more devices here if needed
-  // JKBMS(BMS_MAC_ADDRESS_2),
   // JKBMS(BMS_MAC_ADDRESS_3)
 };
 
@@ -50,12 +52,12 @@ void setup() {
   lastMillis = millis();
   prefs.begin("JK BMS", false);
   
-  if(prefs.isKey("mac1")) {
-      prefs.getString("mac1", mac_addr, sizeof(mac_addr));
-  } else {
-      strncpy(mac_addr, "c8:47:80:23:4f:95", sizeof(mac_addr));
-      mac_addr[sizeof(mac_addr)-1] = '\0'; // Ensure null-termination
-  }
+  //if(prefs.isKey("mac1")) {
+  //    prefs.getString("mac1", mac_addr, sizeof(mac_addr));
+  //} else {
+  //    strncpy(mac_addr, "c8:47:80:23:4f:95", sizeof(mac_addr));
+  //    mac_addr[sizeof(mac_addr)-1] = '\0'; // Ensure null-termination
+  //}
   
   // init display and elements
   ui_init();
