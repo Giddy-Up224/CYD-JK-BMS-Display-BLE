@@ -23,9 +23,15 @@ TODO:
 
 Future Features:
 - List and select available devices
-- Show device name on home screen header
+- Show device name on home screen header (Or check out idea below)
 - Variable screen dimming using onboard LDR (option selectable from settings)
-- Add ability to show multiple devices by scrolling through main screen
+- Add ability to show multiple devices by scrolling through main screen. (Or check out idea below)
+
+Where I'm going:
+- branch: `dev_redo_ui`
+- It is working half decently.
+- Check TODO for `update_bms_display()` in `screens.cpp`
+- I was thinking of having the UI cycle through all the connected BMSes and showing the connected BMS name with its data
 
 
 ## Build Instructions
