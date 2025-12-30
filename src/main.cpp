@@ -39,6 +39,9 @@ const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
 // BLE scanning
 unsigned long lastScanTime = 0;
 
+// Function prototypes
+void update_display();
+
 //********************************************
 // Setup Function
 //********************************************
@@ -77,12 +80,7 @@ void loop() {
   // Handle LVGL tasks
   lv_task_handler();
 
-  // Update BMS display periodically
-  static unsigned long lastDisplayUpdate = 0;
-  if (millis() - lastDisplayUpdate >= DISPLAY_UPDATE_INTERVAL) {
-    update_bms_display();
-    lastDisplayUpdate = millis();
-  }
+  update_display();
 
   // BMS Connection management
   int connectedCount = 0;
@@ -120,4 +118,15 @@ void loop() {
   }
 
   delay(10);
+}
+
+// Global timer var
+static unsigned long lastDisplayUpdate = 0;
+
+void update_display() {
+  // Update BMS display periodically
+  if (millis() - lastDisplayUpdate >= DISPLAY_UPDATE_INTERVAL) {
+    update_bms_display();
+    lastDisplayUpdate = millis();
+  }
 }
