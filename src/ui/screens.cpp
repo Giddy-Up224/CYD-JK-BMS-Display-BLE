@@ -577,7 +577,8 @@ void go_more() {
 
     // Settings button
     lv_obj_t* go_to_settings_btn = lv_btn_create(scr_more);
-    lv_obj_align(go_to_settings_btn, LV_ALIGN_TOP_LEFT, -10, 10);
+    lv_obj_set_size(go_to_settings_btn, 120, 40);
+    lv_obj_align(go_to_settings_btn, LV_ALIGN_BOTTOM_MID, 0, 20);
     lv_obj_add_event_cb(go_to_settings_btn, [](lv_event_t* e) -> void {
       nav_push(ScreenID::SCREEN_MORE);
       go_settings();
@@ -608,7 +609,7 @@ void go_main() {
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* go_to_settings_btn_label = lv_label_create(go_to_more_btn);
-    lv_label_set_text(go_to_settings_btn_label, "...");
+    lv_label_set_text(go_to_settings_btn_label, "More");
     lv_obj_align_to(go_to_settings_btn_label, go_to_more_btn, LV_ALIGN_CENTER, 0, 0);
 
     soc_gauge = lv_arc_create(scr_main);
