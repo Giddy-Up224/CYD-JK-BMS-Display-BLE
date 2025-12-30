@@ -47,8 +47,6 @@ void setup() {
   lastMillis = millis();
   prefs.begin("JK BMS", false);
   
-  
-  
   if(prefs.isKey("mac1")) {
       prefs.getString("mac1", mac_addr, sizeof(mac_addr));
   } else {
@@ -61,7 +59,6 @@ void setup() {
 
   // Initialize BLE
   DEBUG_PRINTLN("Initializing NimBLE Client...");
-
   // Print configured BMS devices
   for (int i = 0; i < bmsDeviceCount; i++) {
     DEBUG_PRINTF("BMS Device %d: MAC = %s\n", i, jkBmsDevices[i].targetMAC.c_str());
