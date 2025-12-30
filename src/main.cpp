@@ -77,10 +77,6 @@ void loop() {
   // Handle LVGL tasks
   lv_task_handler();
 
-  // Update monitoring
-  calculateUptime();
-  monitorFreeHeap();
-
   // Update BMS display periodically
   static unsigned long lastDisplayUpdate = 0;
   if (millis() - lastDisplayUpdate >= DISPLAY_UPDATE_INTERVAL) {
