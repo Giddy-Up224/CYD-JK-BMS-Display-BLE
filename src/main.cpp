@@ -5,10 +5,10 @@
 #include <Preferences.h>
 
 // Project modules
-#include "config.h"
+#include "config/config.h"
 #include "utils/utils.h"
-#include "navigation.h"
-#include "jkbms.h"
+#include "ui/navigation.h"
+#include "bms/jkbms.h"
 #include "ui/screens.h"
 #include "prefs.h"
 

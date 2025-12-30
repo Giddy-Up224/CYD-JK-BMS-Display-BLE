@@ -1,7 +1,7 @@
 #include "jkbms.h"
-#include "utils/utils.h"
-#include "config.h"
-#include "ui/screens.h"
+#include "../utils/utils.h"
+#include "../config/config.h"
+#include "../ui/screens.h"
 
 
 // Global variables

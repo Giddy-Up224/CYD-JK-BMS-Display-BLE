@@ -1,9 +1,9 @@
 #include <LVGL_CYD.h>
 #include "screens.h"
-#include "../navigation.h"
+#include "navigation.h"
 #include "../utils/utils.h"
-#include "../config.h"
-#include "../jkbms.h"
+#include "../config/config.h"
+#include "../bms/jkbms.h"
 
 // Global LVGL elements
 lv_obj_t* soc_gauge = nullptr;
