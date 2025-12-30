@@ -19,11 +19,11 @@
 // Memory monitoring functions
 void calculateUptime();
 void monitorFreeHeap();
-void formatBytes(size_t bytes, char* buffer, size_t bufferSize);
+void formatBytes(size_t bytes, char *buffer, size_t bufferSize);
 
 // Utility functions
-void getCoreVersion(char* version);
-void getSketchName(char* sketchName);
+void getCoreVersion(char *version);
+void getSketchName(char *sketchName);
 String getSketchInfo();
 String formatUptime(uint32_t totalSeconds);
 

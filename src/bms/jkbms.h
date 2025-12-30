@@ -9,8 +9,8 @@ public:
   JKBMS(const std::string& mac);
 
   // BLE Components
-  NimBLERemoteCharacteristic* pChr = nullptr;
-  const NimBLEAdvertisedDevice* advDevice = nullptr;
+  NimBLERemoteCharacteristic *pChr = nullptr;
+  const NimBLEAdvertisedDevice *advDevice = nullptr;
   bool doConnect = false;
   bool connected = false;
   uint32_t lastNotifyTime = 0;
@@ -81,7 +81,7 @@ public:
   void parseData();
   void bms_settings();
   void writeRegister(uint8_t address, uint32_t value, uint8_t length);
-  void handleNotification(uint8_t* pData, size_t length);
+  void handleNotification(uint8_t *pData, size_t length);
 
 private:
   uint8_t crc(const uint8_t data[], uint16_t len);
@@ -89,22 +89,22 @@ private:
 
 // BLE Callbacks
 class ClientCallbacks : public NimBLEClientCallbacks {
-  JKBMS* bms;
+  JKBMS *bms;
 public:
-  ClientCallbacks(JKBMS* bmsInstance);
-  void onConnect(NimBLEClient* pClient);
-  void onDisconnect(NimBLEClient* pClient, int reason);
+  ClientCallbacks(JKBMS *bmsInstance);
+  void onConnect(NimBLEClient *pClient);
+  void onDisconnect(NimBLEClient *pClient, int reason);
 };
 
 // Global callback function for notifications
-void notifyCB(NimBLERemoteCharacteristic* pChr, uint8_t* pData, size_t length, bool isNotify);
+void notifyCB(NimBLERemoteCharacteristic *pChr, uint8_t *pData, size_t length, bool isNotify);
 
 void scanForDevices();
 
 // Global BMS device array - defined in main.cpp
 extern JKBMS jkBmsDevices[];
 extern const int bmsDeviceCount;
-extern NimBLEScan* pScan; // defined in jkbms.cpp, also used in main.cpp
+extern NimBLEScan *pScan; // defined in jkbms.cpp, also used in main.cpp
 extern std::string BMS_B1A8S10P;
 extern std::string deviceName;    // defined in jkbms.cpp
 extern std::string deviceAddress; // defined in jkbms.cpp

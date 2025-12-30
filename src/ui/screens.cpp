@@ -6,44 +6,40 @@
 #include "../bms/jkbms.h"
 
 // Global LVGL elements
-lv_obj_t* soc_gauge = nullptr;
-lv_obj_t* soc_gauge_label = nullptr;
-lv_obj_t* battery_current_label = nullptr;
-lv_obj_t* battery_voltage_and_current_label = nullptr;
-lv_obj_t* scr_cell_resistances = nullptr;
-lv_obj_t* scr_cell_voltages = nullptr;
-lv_obj_t* cell_voltage_table = nullptr;
-lv_obj_t* delta_voltages_table = nullptr;
-lv_obj_t* wire_res_table = nullptr;
-lv_obj_t* res_high_low_avg_table = nullptr;
+lv_obj_t *soc_gauge = nullptr;
+lv_obj_t *soc_gauge_label = nullptr;
+lv_obj_t *battery_current_label = nullptr;
+lv_obj_t *battery_voltage_and_current_label = nullptr;
+lv_obj_t *cell_voltage_table = nullptr;
+lv_obj_t *delta_voltages_table = nullptr;
+lv_obj_t *wire_res_table = nullptr;
+lv_obj_t *res_high_low_avg_table = nullptr;
 
 // Screen objects
-lv_obj_t* scr_main = nullptr;
-lv_obj_t* scr_connect_jk_device = nullptr;
-lv_obj_t* jk_device_list = nullptr;
-lv_obj_t* jk_devices_scroll_container = nullptr;
-lv_obj_t* scr_more = nullptr;
-lv_obj_t* scr_settings = nullptr;
-lv_obj_t* scr_misc_settings = nullptr;
-lv_obj_t* btn_back = nullptr;
-lv_obj_t* btn_exit = nullptr;
-lv_obj_t* lbl_header = nullptr;
-lv_obj_t* scr_led = nullptr;
-lv_obj_t* slider_led[3];
-lv_obj_t* sw_led_true = nullptr;
-lv_obj_t* scr_backlight = nullptr;
-lv_obj_t* slider_bl = nullptr;
-lv_obj_t* scr_touch = nullptr;
-lv_obj_t* horizontal = nullptr;
-lv_obj_t* vertical = nullptr;
+lv_obj_t *scr_main = nullptr;
+lv_obj_t *scr_connect_jk_device = nullptr;
+lv_obj_t *scr_more = nullptr;
+lv_obj_t *scr_cell_voltages = nullptr;
+lv_obj_t *scr_cell_resistances = nullptr;
+lv_obj_t *scr_settings = nullptr;
+lv_obj_t *scr_display_settings = nullptr;
+lv_obj_t *scr_backlight = nullptr;
+lv_obj_t *jk_device_list = nullptr;
+lv_obj_t *jk_devices_scroll_container = nullptr;
+lv_obj_t *btn_back = nullptr;
+lv_obj_t *btn_exit = nullptr;
+lv_obj_t *lbl_header = nullptr;
+lv_obj_t *slider_bl = nullptr;
+lv_obj_t *horizontal = nullptr;
+lv_obj_t *vertical = nullptr;
 
 // Global variables for LVGL components
 float battery_voltage;
 float battery_current;
 
 // Creates a new obj to use as base screen
-lv_obj_t* new_screen(lv_obj_t* parent) {
-  lv_obj_t* obj = lv_obj_create(parent);
+lv_obj_t *new_screen(lv_obj_t *parent) {
+  lv_obj_t *obj = lv_obj_create(parent);
   lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_set_style_border_width(obj, 0, 0);
@@ -59,7 +55,7 @@ lv_obj_t* new_screen(lv_obj_t* parent) {
 void update_bms_display() {
   // TODO: change this to not use a single connected bool for all BMSes
   bool connected = false;
-  JKBMS* connectedBMS = nullptr;
+  JKBMS *connectedBMS = nullptr;
   
   // Find first connected BMS
   for (int i = 0; i < bmsDeviceCount; i++) {
@@ -181,7 +177,7 @@ void go_backlight() {
     slider_bl = lv_slider_create(scr_backlight);
     lv_obj_set_width(slider_bl, lv_pct(80));
     lv_slider_set_range(slider_bl, 0, 255);
-    lv_obj_add_event_cb(slider_bl, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(slider_bl, [](lv_event_t *e) -> void {
       LVGL_CYD::backlight(lv_slider_get_value(slider_bl));
     }, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -200,7 +196,7 @@ void go_backlight() {
 
 // Rotate display 90 degrees clockwise
 void go_rotate() {
-  lv_disp_t* display = lv_disp_get_default();
+  lv_disp_t *display = lv_disp_get_default();
   lv_display_rotation_t rotation = lv_display_get_rotation(display);
   if (rotation == USB_LEFT) lv_display_set_rotation(display, USB_DOWN);
   else if (rotation == USB_DOWN) lv_display_set_rotation(display, USB_RIGHT);
@@ -210,22 +206,22 @@ void go_rotate() {
 
 // Misc settings screen
 void go_display_settings() {
-  if (!scr_misc_settings) {
-    scr_misc_settings = new_screen(NULL);
-    lv_obj_set_size(scr_misc_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+  if (!scr_display_settings) {
+    scr_display_settings = new_screen(NULL);
+    lv_obj_set_size(scr_display_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    lv_obj_t* btn_bl = lv_button_create(scr_misc_settings);
-    lv_obj_t* lbl_bl = lv_label_create(btn_bl);
+    lv_obj_t *btn_bl = lv_button_create(scr_display_settings);
+    lv_obj_t *lbl_bl = lv_label_create(btn_bl);
     lv_label_set_text(lbl_bl, "Backlight brightness");
-    lv_obj_add_event_cb(btn_bl, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(btn_bl, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_DISPLAY_SETTINGS);
       go_backlight();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* btn_rotate = lv_button_create(scr_misc_settings);
-    lv_obj_t* lbl_rotate = lv_label_create(btn_rotate);
+    lv_obj_t *btn_rotate = lv_button_create(scr_display_settings);
+    lv_obj_t *lbl_rotate = lv_label_create(btn_rotate);
     lv_label_set_text(lbl_rotate, "Rotate display");
-    lv_obj_add_event_cb(btn_rotate, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(btn_rotate, [](lv_event_t *e) -> void {
       go_rotate();
     }, LV_EVENT_CLICKED, NULL);
   }
@@ -233,7 +229,7 @@ void go_display_settings() {
   lv_label_set_text(lbl_header, "Misc Settings");
   lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-  lv_screen_load(scr_misc_settings);
+  lv_screen_load(scr_display_settings);
 }
 
 // Settings screen
@@ -242,17 +238,17 @@ void go_settings() {
     scr_settings = new_screen(NULL);
     lv_obj_set_size(scr_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    lv_obj_t* btn_misc_settings = lv_button_create(scr_settings);
-    lv_obj_t* lbl_display_settings = lv_label_create(btn_misc_settings);
+    lv_obj_t *btn_misc_settings = lv_button_create(scr_settings);
+    lv_obj_t *lbl_display_settings = lv_label_create(btn_misc_settings);
     lv_label_set_text(lbl_display_settings, "Display Settings");
-    lv_obj_add_event_cb(btn_misc_settings, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(btn_misc_settings, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_SETTINGS);
       go_display_settings();
     }, LV_EVENT_CLICKED, NULL);
 
     // TODO: Implement checkbox state 
     //TODO: set as option for individual BMSes ??
-    lv_obj_t* chb_bms_auto_conn_on_boot = lv_checkbox_create(scr_settings);
+    lv_obj_t *chb_bms_auto_conn_on_boot = lv_checkbox_create(scr_settings);
     lv_checkbox_set_text(chb_bms_auto_conn_on_boot, "Auto conn BMS on boot");
   }
 
@@ -271,7 +267,7 @@ void go_wire_resistances() {
     lv_obj_set_size(scr_cell_resistances, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
     // Create scrollable container
-    lv_obj_t* scroll_container = lv_obj_create(scr_cell_resistances);
+    lv_obj_t *scroll_container = lv_obj_create(scr_cell_resistances);
     lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
     lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -346,7 +342,7 @@ void go_cell_voltages() {
     lv_obj_set_size(scr_cell_voltages, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
     // Create scrollable container
-    lv_obj_t* scroll_container = lv_obj_create(scr_cell_voltages);
+    lv_obj_t *scroll_container = lv_obj_create(scr_cell_voltages);
     lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
     lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -412,11 +408,11 @@ void go_cell_voltages() {
   lv_screen_load(scr_cell_voltages);
 }
 
-void save_mac_addr(const char* mac_addr) {
+void save_mac_addr(const char *mac_addr) {
   // TODO: add prefs logic here to save mac address
 }
 
-void connect_selected_device(const char* mac) {
+void connect_selected_device(const char *mac) {
   DEBUG_PRINTF("Connecting to device with MAC: %s\n", mac);
   // TODO: Add code to connect to the device using the provided MAC address
   // TODO: read from prefs on startup if any mac addresses are saved to prefs
@@ -424,12 +420,12 @@ void connect_selected_device(const char* mac) {
 
 // Adds a button to the device list for the given device info
 // Returns the button object created
-lv_obj_t* create_device_list_button(const char* name, const char* mac_address)
+lv_obj_t *create_device_list_button(const char *name, const char *mac_address)
 {
   if (jk_devices_scroll_container) {
     DEBUG_PRINTLN("Adding button...");
 
-    lv_obj_t* btn = lv_btn_create(jk_devices_scroll_container);
+    lv_obj_t *btn = lv_btn_create(jk_devices_scroll_container);
     //lv_obj_remove_style_all(btn);
     lv_obj_set_size(btn, lv_pct(100), LV_SIZE_CONTENT);
     lv_obj_set_style_pad_all(btn, 4, 0);
@@ -438,31 +434,31 @@ lv_obj_t* create_device_list_button(const char* name, const char* mac_address)
     lv_obj_set_layout(btn, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(btn, LV_FLEX_FLOW_ROW);
     
-    lv_obj_t * name_lbl = lv_label_create(btn);
+    lv_obj_t *name_lbl = lv_label_create(btn);
     lv_label_set_text(name_lbl, name);
     //lv_obj_set_grid_cell(name_lbl, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     
-    //lv_obj_t * rssi_lbl = lv_label_create(btn);
+    //lv_obj_t *rssi_lbl = lv_label_create(btn);
     //lv_label_set_text(rssi_lbl, rssi);
     //lv_obj_set_grid_cell(rssi_lbl, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     
-    lv_obj_t * mac_lbl = lv_label_create(btn);
+    lv_obj_t *mac_lbl = lv_label_create(btn);
     lv_label_set_text(mac_lbl, mac_address);
     //lv_obj_set_grid_cell(mac_lbl, LV_GRID_ALIGN_START, 2, 1, LV_GRID_ALIGN_CENTER, 2, 1);
 
     lv_obj_set_style_pad_column(btn, 10, 0);
 
     // allocate a copy of the MAC address on the heap
-    char* mac_copy = strdup(mac_address);
+    char *mac_copy = strdup(mac_address);
     
     //lv_obj_add_style(btn, &style_btn, 0);
     //lv_obj_add_style(btn, &style_button_pr, LV_STATE_PRESSED);
     //lv_obj_add_style(btn, &style_button_chk, LV_STATE_CHECKED);
     //lv_obj_add_style(btn, &style_button_dis, LV_STATE_DISABLED);
 
-    lv_obj_add_event_cb(btn, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(btn, [](lv_event_t *e) -> void {
       // add code to connect to the selected device here
-      const char* mac = static_cast<const char*>(lv_event_get_user_data(e));
+      const char *mac = static_cast<const char*>(lv_event_get_user_data(e));
       if(mac) {
         DEBUG_PRINTF("Button clicked for device with MAC: %s\n", mac);
         //connect_selected_device(mac);
@@ -501,16 +497,16 @@ void go_connect_bms() {
     lv_obj_set_size(scr_connect_jk_device, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
     // Add Scan button
-    lv_obj_t* scan_btn = lv_btn_create(scr_connect_jk_device);
+    lv_obj_t *scan_btn = lv_btn_create(scr_connect_jk_device);
     lv_obj_set_size(scan_btn, 120, 40);
     lv_obj_align(scan_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
-    lv_obj_add_event_cb(scan_btn, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(scan_btn, [](lv_event_t *e) -> void {
       //scan_for_jk_devices();
       DEBUG_PRINTLN("Scan button pressed!");
       scanForDevices();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* scan_btn_label = lv_label_create(scan_btn);
+    lv_obj_t *scan_btn_label = lv_label_create(scan_btn);
     lv_label_set_text(scan_btn_label, "Scan");
     lv_obj_center(scan_btn_label);
 
@@ -538,54 +534,54 @@ void go_more() {
     lv_obj_set_size(scr_more, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
     // Add connect BMS button
-    lv_obj_t* connect_bms_btn = lv_btn_create(scr_more);
+    lv_obj_t *connect_bms_btn = lv_btn_create(scr_more);
     lv_obj_set_size(connect_bms_btn, 120, 40);
     lv_obj_align(connect_bms_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
-    lv_obj_add_event_cb(connect_bms_btn, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(connect_bms_btn, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_MORE);
       go_connect_bms();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* connect_bms_btn_label = lv_label_create(connect_bms_btn);
+    lv_obj_t *connect_bms_btn_label = lv_label_create(connect_bms_btn);
     lv_label_set_text(connect_bms_btn_label, "Scan devices");
     lv_obj_center(connect_bms_btn_label);
 
     // Add cell voltages button
-    lv_obj_t* cell_voltages_btn = lv_btn_create(scr_more);
+    lv_obj_t *cell_voltages_btn = lv_btn_create(scr_more);
     lv_obj_set_size(cell_voltages_btn, 120, 40);
     lv_obj_align(cell_voltages_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
-    lv_obj_add_event_cb(cell_voltages_btn, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(cell_voltages_btn, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_MORE);
       go_cell_voltages();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* cell_voltages_btn_label = lv_label_create(cell_voltages_btn);
+    lv_obj_t *cell_voltages_btn_label = lv_label_create(cell_voltages_btn);
     lv_label_set_text(cell_voltages_btn_label, "Cell Voltages");
     lv_obj_center(cell_voltages_btn_label);
 
     // Add wire resistances button
-    lv_obj_t* wire_res_button = lv_btn_create(scr_more);
+    lv_obj_t *wire_res_button = lv_btn_create(scr_more);
     lv_obj_set_size(wire_res_button, 120, 40);
     lv_obj_align(wire_res_button, LV_ALIGN_BOTTOM_MID, 0, -20);
-    lv_obj_add_event_cb(wire_res_button, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(wire_res_button, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_MORE);
       go_wire_resistances();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* wire_res_button_label = lv_label_create(wire_res_button);
+    lv_obj_t *wire_res_button_label = lv_label_create(wire_res_button);
     lv_label_set_text(wire_res_button_label, "Wire Res.");
     lv_obj_center(wire_res_button_label);
 
     // Settings button
-    lv_obj_t* go_to_settings_btn = lv_btn_create(scr_more);
+    lv_obj_t *go_to_settings_btn = lv_btn_create(scr_more);
     lv_obj_set_size(go_to_settings_btn, 120, 40);
     lv_obj_align(go_to_settings_btn, LV_ALIGN_BOTTOM_MID, 0, 20);
-    lv_obj_add_event_cb(go_to_settings_btn, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(go_to_settings_btn, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_MORE);
       go_settings();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* go_to_settings_btn_label = lv_label_create(go_to_settings_btn);
+    lv_obj_t *go_to_settings_btn_label = lv_label_create(go_to_settings_btn);
     lv_label_set_text(go_to_settings_btn_label, LV_SYMBOL_SETTINGS);
     lv_obj_align_to(go_to_settings_btn_label, go_to_settings_btn, LV_ALIGN_CENTER, 0, 0);
   }
@@ -602,14 +598,14 @@ void go_main() {
     scr_main = new_screen(NULL);
     lv_obj_set_size(scr_main, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    lv_obj_t* go_to_more_btn = lv_btn_create(scr_main);
+    lv_obj_t *go_to_more_btn = lv_btn_create(scr_main);
     lv_obj_align(go_to_more_btn, LV_ALIGN_TOP_LEFT, -10, 10);
-    lv_obj_add_event_cb(go_to_more_btn, [](lv_event_t* e) -> void {
+    lv_obj_add_event_cb(go_to_more_btn, [](lv_event_t *e) -> void {
       nav_push(ScreenID::SCREEN_MAIN);
       go_more();
     }, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t* go_to_settings_btn_label = lv_label_create(go_to_more_btn);
+    lv_obj_t *go_to_settings_btn_label = lv_label_create(go_to_more_btn);
     lv_label_set_text(go_to_settings_btn_label, "More");
     lv_obj_align_to(go_to_settings_btn_label, go_to_more_btn, LV_ALIGN_CENTER, 0, 0);
 
@@ -672,7 +668,7 @@ void handle_back_navigation() {
       break;
     case SCREEN_DISPLAY_SETTINGS:
       go_display_settings();
-      DEBUG_PRINTLN("going to scr_misc_settings");
+      DEBUG_PRINTLN("going to scr_display_settings");
       break;
     case SCREEN_BL:
       go_backlight();
@@ -696,7 +692,7 @@ void handle_back_navigation() {
 // Initialize UI Navigation
 void ui_navigation_init() {
   // Back button callback
-  lv_obj_add_event_cb(btn_back, [](lv_event_t* e) -> void {
+  lv_obj_add_event_cb(btn_back, [](lv_event_t *e) -> void {
     handle_back_navigation();
   }, LV_EVENT_CLICKED, NULL);
 }
@@ -717,12 +713,12 @@ void create_exit_btn() {
   lv_obj_set_style_border_width(btn_exit, 0, LV_PART_MAIN);
   lv_obj_set_size(btn_exit, 40, 40);
   lv_obj_align(btn_exit, LV_ALIGN_TOP_RIGHT, 0, 0);
-  lv_obj_add_event_cb(btn_exit, [](lv_event_t* e) -> void {
+  lv_obj_add_event_cb(btn_exit, [](lv_event_t *e) -> void {
     go_main();
   }, LV_EVENT_CLICKED, NULL);
 
   // Exit button symbol
-  lv_obj_t* lbl_exit_symbol = lv_label_create(btn_exit);
+  lv_obj_t *lbl_exit_symbol = lv_label_create(btn_exit);
   lv_obj_set_style_text_font(lbl_exit_symbol, &lv_font_montserrat_18, LV_PART_MAIN);
   lv_obj_set_style_text_align(lbl_exit_symbol, LV_TEXT_ALIGN_RIGHT, 0);
   lv_label_set_text(lbl_exit_symbol, LV_SYMBOL_CLOSE);
@@ -740,7 +736,7 @@ void create_back_btn() {
   lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 0, 0);
 
   // Back button symbol
-  lv_obj_t* lbl_back_symbol = lv_label_create(btn_back);
+  lv_obj_t *lbl_back_symbol = lv_label_create(btn_back);
   lv_obj_set_style_text_font(lbl_back_symbol, &lv_font_montserrat_18, LV_PART_MAIN);
   lv_obj_set_style_text_align(lbl_back_symbol, LV_TEXT_ALIGN_CENTER, 0);
   lv_label_set_text(lbl_back_symbol, LV_SYMBOL_BACKSPACE);

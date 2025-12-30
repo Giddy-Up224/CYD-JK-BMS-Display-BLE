@@ -104,7 +104,7 @@ void loop() {
       connectedCount++;
       if (millis() - jkBmsDevices[i].lastNotifyTime > BMS_CONNECTION_TIMEOUT) {
         DEBUG_PRINTF("%s connection timeout\n", jkBmsDevices[i].targetMAC.c_str());
-        NimBLEClient* pClient = NimBLEDevice::getClientByPeerAddress(jkBmsDevices[i].advDevice->getAddress());
+        NimBLEClient *pClient = NimBLEDevice::getClientByPeerAddress(jkBmsDevices[i].advDevice->getAddress());
         if (pClient) pClient->disconnect();
       }
     }

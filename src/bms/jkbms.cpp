@@ -7,7 +7,7 @@
 // Global variables
 bool isScanning = false;
 // Appwide global vars
-NimBLEScan* pScan;
+NimBLEScan *pScan;
 
 
 JKBMS::JKBMS(const std::string& mac) : targetMAC(mac) {}
@@ -20,7 +20,7 @@ uint8_t JKBMS::crc(const uint8_t data[], uint16_t len) {
 
 bool JKBMS::connectToServer() {
   DEBUG_PRINTF("Attempting to connect to %s...\n", targetMAC.c_str());
-  NimBLEClient* pClient = NimBLEDevice::getClientByPeerAddress(advDevice->getAddress());
+  NimBLEClient *pClient = NimBLEDevice::getClientByPeerAddress(advDevice->getAddress());
 
   if (!pClient) {
     pClient = NimBLEDevice::createClient();
@@ -37,7 +37,7 @@ bool JKBMS::connectToServer() {
 
   DEBUG_PRINTF("Connected to: %s RSSI: %d\n", pClient->getPeerAddress().toString().c_str(), pClient->getRssi());
 
-  NimBLERemoteService* pSvc = pClient->getService("ffe0");
+  NimBLERemoteService *pSvc = pClient->getService("ffe0");
   if (pSvc) {
     pChr = pSvc->getCharacteristic("ffe1");
     if (pChr && pChr->canNotify()) {
@@ -55,7 +55,7 @@ bool JKBMS::connectToServer() {
   return false;
 }
 
-void JKBMS::handleNotification(uint8_t* pData, size_t length) {
+void JKBMS::handleNotification(uint8_t *pData, size_t length) {
   DEBUG_PRINTLN("Handling notification...");
   lastNotifyTime = millis();
 
@@ -132,7 +132,7 @@ void JKBMS::writeRegister(uint8_t address, uint32_t value, uint8_t length) {
   DEBUG_PRINTF("\n");
 
   if (pChr) {
-    pChr->writeValue((uint8_t*)frame, (size_t)sizeof(frame));
+    pChr->writeValue((uint8_t *)frame, (size_t)sizeof(frame));
   }
 }
 
@@ -351,25 +351,25 @@ void JKBMS::parseData() {
 }
 
 // Callbacks implementation
-ClientCallbacks::ClientCallbacks(JKBMS* bmsInstance) : bms(bmsInstance) {}
+ClientCallbacks::ClientCallbacks(JKBMS *bmsInstance) : bms(bmsInstance) {}
 
-void ClientCallbacks::onConnect(NimBLEClient* pClient) {
+void ClientCallbacks::onConnect(NimBLEClient *pClient) {
   DEBUG_PRINTF("Connected to %s\n", bms->targetMAC.c_str());
   bms->connected = true;
 }
 
-void ClientCallbacks::onDisconnect(NimBLEClient* pClient, int reason) {
+void ClientCallbacks::onDisconnect(NimBLEClient *pClient, int reason) {
   DEBUG_PRINTF("%s disconnected, reason: %d\n", bms->targetMAC.c_str(), reason);
   bms->connected = false;
   bms->doConnect = false;
 }
 
 class ScanCallbacks : public NimBLEScanCallbacks {
-  void onDiscovered(const NimBLEAdvertisedDevice* advertisedDevice) override {
+  void onDiscovered(const NimBLEAdvertisedDevice *advertisedDevice) override {
     //DEBUG_PRINTF("Discovered Advertised Device: %s \n", advertisedDevice->toString().c_str());
   }
 
-  void onResult(const NimBLEAdvertisedDevice* advertisedDevice) override {
+  void onResult(const NimBLEAdvertisedDevice *advertisedDevice) override {
     //DEBUG_PRINTF("BLE Device found: %s\n", advertisedDevice->toString().c_str());
     for (int i = 0; i < bmsDeviceCount; i++) {
       if (jkBmsDevices[i].targetMAC.empty()) continue;  // Skip empty MAC addresses
@@ -393,7 +393,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     if (advertisedDevice->haveManufacturerData()) {
       auto mfgData  = advertisedDevice->getManufacturerData();
       res          += ", manufacturer data: ";
-      std::string str_mfgData = NimBLEUtils::dataToHexString(reinterpret_cast<const uint8_t*>(mfgData.data()), mfgData.length());
+      std::string str_mfgData = NimBLEUtils::dataToHexString(reinterpret_cast<const uint8_t *>(mfgData.data()), mfgData.length());
       res += str_mfgData;
       // Device types (add more in future)
       // TODO: Create struct, class, or enum to allow more device types
@@ -411,7 +411,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     
 
     // Following is some commented code that may come in handy in the future:
-    //const char* mac_addr = advertisedDevice->getAddress().toString().c_str();
+    //const char *mac_addr = advertisedDevice->getAddress().toString().c_str();
     //uint8_t rssi = advertisedDevice->getRSSI();
     //std::string p_mac_addr = advertisedDevice->getAddress().toString().c_str();
     //DEBUG_PRINTF("Name: %s RSSI: %d MAC: %s\n Mfgr data: %s", name, rssi, mac_addr, mfgr_data_str);
@@ -423,7 +423,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     }
 } scanCallbacks;
 
-void notifyCB(NimBLERemoteCharacteristic* pChr, uint8_t* pData, size_t length, bool isNotify) {
+void notifyCB(NimBLERemoteCharacteristic *pChr, uint8_t *pData, size_t length, bool isNotify) {
   DEBUG_PRINTLN("Notification received...");
   for (int i = 0; i < bmsDeviceCount; i++) {
     if (jkBmsDevices[i].pChr == pChr) {

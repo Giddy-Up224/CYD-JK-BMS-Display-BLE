@@ -39,7 +39,7 @@ void monitorFreeHeap() {
 }
 
 // Readable display of memory sizes
-void formatBytes(size_t bytes, char* buffer, size_t bufferSize) {
+void formatBytes(size_t bytes, char *buffer, size_t bufferSize) {
   if (bytes < 1024) {
     snprintf_P(buffer, bufferSize, PSTR("%zu%s"), bytes, PSTR(" Byte"));
   } else if (bytes < 1048576) {
@@ -51,13 +51,13 @@ void formatBytes(size_t bytes, char* buffer, size_t bufferSize) {
   }
 }
 
-void getCoreVersion(char* version) {
+void getCoreVersion(char *version) {
   // Write the version to the char array
   sprintf(version, "%d.%d.%d", ESP_ARDUINO_VERSION_MAJOR, ESP_ARDUINO_VERSION_MINOR, ESP_ARDUINO_VERSION_PATCH);
 }
 
-void getSketchName(char* sketchName) {
-  const char* filename = __FILE__;
+void getSketchName(char *sketchName) {
+  const char *filename = __FILE__;
   int slashIndex = 0;
   for (int i = 0; i < strlen(filename); i++) {
     char c = filename[i];
