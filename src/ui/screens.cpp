@@ -172,65 +172,6 @@ void update_bms_display() {
   }
 }
 
-// LED screen callback
-void scr_led_cb(lv_event_t* e) {
-  LVGL_CYD::led(
-    lv_slider_get_value(slider_led[0]),
-    lv_slider_get_value(slider_led[1]),
-    lv_slider_get_value(slider_led[2]),
-    lv_obj_has_state(sw_led_true, LV_STATE_CHECKED)
-  );
-}
-
-// LED color screen
-void go_led() {
-  if (!scr_led) {
-    scr_led = new_screen(NULL);
-
-    // Switch between true colors and max brightness
-    lv_obj_t* sw_container = lv_obj_create(scr_led);
-    lv_obj_set_style_bg_opa(sw_container, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_clear_flag(sw_container, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_border_width(sw_container, 0, 0);
-    lv_obj_set_height(sw_container, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_all(sw_container, 0, 0);
-    lv_obj_set_flex_flow(sw_container, LV_FLEX_FLOW_ROW);
-    lv_obj_t* lbl_max = lv_label_create(sw_container);
-    lv_label_set_text(lbl_max, "max");
-    sw_led_true = lv_switch_create(sw_container);
-    lv_obj_add_state(sw_led_true, LV_STATE_CHECKED);
-    lv_obj_set_size(sw_led_true, 40, 20);
-    lv_obj_add_event_cb(sw_led_true, scr_led_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    lv_obj_t* lbl_true = lv_label_create(sw_container);
-    lv_label_set_text(lbl_true, "true");
-    lv_obj_set_style_pad_column(sw_container, 5, 0);
-
-    // Colors for the 3 sliders
-    lv_color_t color[3] {
-      lv_color_make(255, 0, 0),
-      lv_color_make(0, 200, 0),  // Full-on green looks too yellow on display
-      lv_color_make(0, 0, 255)
-    };
-
-    // Set up the sliders
-    for (int n = 0; n < 3; n++) {
-      slider_led[n] = lv_slider_create(scr_led);
-      lv_obj_set_width(slider_led[n], lv_pct(80));
-      lv_obj_set_style_margin_top(slider_led[n], 25, LV_PART_MAIN);
-      lv_obj_set_style_bg_color(slider_led[n], color[n], LV_PART_MAIN);
-      lv_obj_set_style_bg_color(slider_led[n], color[n], LV_PART_INDICATOR);
-      lv_obj_set_style_bg_color(slider_led[n], lv_color_lighten(color[n], LV_OPA_30), LV_PART_KNOB);
-      lv_slider_set_range(slider_led[n], 0, 255);
-      lv_obj_add_event_cb(slider_led[n], scr_led_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    }
-  }
-
-  lv_label_set_text(lbl_header, "RGB LED color");
-  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-  lv_screen_load(scr_led);
-}
-
 // Backlight brightness screen
 void go_backlight() {
   if (!scr_backlight) {
@@ -256,54 +197,6 @@ void go_backlight() {
   lv_screen_load(scr_backlight);
 }
 
-// Touch indicator screen
-void go_touch() {
-  if (!scr_touch) {
-    scr_touch = new_screen(NULL);
-    lv_obj_set_layout(scr_touch, LV_LAYOUT_NONE);
-    lv_obj_set_style_pad_top(scr_touch, 0, LV_PART_MAIN);
-    lv_obj_add_flag(scr_touch, LV_OBJ_FLAG_CLICKABLE);
-
-    horizontal = lv_obj_create(scr_touch);
-    lv_obj_set_style_border_width(horizontal, 0, 0);
-    lv_obj_set_style_radius(horizontal, 0, LV_PART_MAIN);
-    lv_obj_set_size(horizontal, lv_pct(100), 3);
-    lv_obj_set_style_bg_color(horizontal, lv_color_black(), LV_PART_MAIN);
-    lv_obj_clear_flag(horizontal, LV_OBJ_FLAG_CLICKABLE);
-
-    vertical = lv_obj_create(scr_touch);
-    lv_obj_set_style_border_width(vertical, 0, 0);
-    lv_obj_set_style_radius(vertical, 0, LV_PART_MAIN);
-    lv_obj_set_size(vertical, 3, lv_pct(100));
-    lv_obj_set_style_bg_color(vertical, lv_color_black(), LV_PART_MAIN);
-    lv_obj_clear_flag(vertical, LV_OBJ_FLAG_CLICKABLE);
-
-    lv_obj_add_event_cb(scr_touch, [](lv_event_t* e) -> void {
-      if (lv_event_get_code(e) == LV_EVENT_PRESSED || lv_event_get_code(e) == LV_EVENT_PRESSING) {
-        lv_point_t point;
-        lv_indev_get_point(lv_indev_get_act(), &point);
-        lv_obj_set_y(horizontal, point.y);
-        lv_obj_set_x(vertical, point.x);
-        lv_obj_clear_flag(horizontal, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(vertical, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-      } else if (lv_event_get_code(e) == LV_EVENT_RELEASED) {
-        lv_obj_add_flag(horizontal, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(vertical, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-      }
-    }, LV_EVENT_ALL, NULL);
-  }
-
-  lv_obj_add_flag(horizontal, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_add_flag(vertical, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_text(lbl_header, "Touch indicator");
-  lv_screen_load(scr_touch);
-}
-
 // Rotate display 90 degrees clockwise
 void go_rotate() {
   lv_disp_t* display = lv_disp_get_default();
@@ -315,33 +208,17 @@ void go_rotate() {
 }
 
 // Misc settings screen
-void go_misc_settings() {
+void go_display_settings() {
   if (!scr_misc_settings) {
     scr_misc_settings = new_screen(NULL);
     lv_obj_set_size(scr_misc_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
-
-    lv_obj_t* btn_led = lv_button_create(scr_misc_settings);
-    lv_obj_t* lbl_led = lv_label_create(btn_led);
-    lv_label_set_text(lbl_led, "RGB LED color");
-    lv_obj_add_event_cb(btn_led, [](lv_event_t* e) -> void {
-      nav_push(ScreenID::SCREEN_MISC_SETTINGS);
-      go_led();
-    }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* btn_bl = lv_button_create(scr_misc_settings);
     lv_obj_t* lbl_bl = lv_label_create(btn_bl);
     lv_label_set_text(lbl_bl, "Backlight brightness");
     lv_obj_add_event_cb(btn_bl, [](lv_event_t* e) -> void {
-      nav_push(ScreenID::SCREEN_MISC_SETTINGS);
+      nav_push(ScreenID::SCREEN_DISPLAY_SETTINGS);
       go_backlight();
-    }, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t* btn_touch = lv_button_create(scr_misc_settings);
-    lv_obj_t* lbl_touch = lv_label_create(btn_touch);
-    lv_label_set_text(lbl_touch, "Touch indicator");
-    lv_obj_add_event_cb(btn_touch, [](lv_event_t* e) -> void {
-      nav_push(ScreenID::SCREEN_MISC_SETTINGS);
-      go_touch();
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* btn_rotate = lv_button_create(scr_misc_settings);
@@ -365,14 +242,15 @@ void go_settings() {
     lv_obj_set_size(scr_settings, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
     lv_obj_t* btn_misc_settings = lv_button_create(scr_settings);
-    lv_obj_t* lbl_misc_settings = lv_label_create(btn_misc_settings);
-    lv_label_set_text(lbl_misc_settings, "Misc Settings");
+    lv_obj_t* lbl_display_settings = lv_label_create(btn_misc_settings);
+    lv_label_set_text(lbl_display_settings, "Display Settings");
     lv_obj_add_event_cb(btn_misc_settings, [](lv_event_t* e) -> void {
       nav_push(ScreenID::SCREEN_SETTINGS);
-      go_misc_settings();
+      go_display_settings();
     }, LV_EVENT_CLICKED, NULL);
 
-    // TODO: Implement checkbox state
+    // TODO: Implement checkbox state 
+    //TODO: set as option for individual BMSes ??
     lv_obj_t* chb_bms_auto_conn_on_boot = lv_checkbox_create(scr_settings);
     lv_checkbox_set_text(chb_bms_auto_conn_on_boot, "Auto conn BMS on boot");
   }
@@ -668,7 +546,7 @@ void go_more() {
     }, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t* connect_bms_btn_label = lv_label_create(connect_bms_btn);
-    lv_label_set_text(connect_bms_btn_label, "Connect Devices...");
+    lv_label_set_text(connect_bms_btn_label, "Scan devices");
     lv_obj_center(connect_bms_btn_label);
 
     // Add cell voltages button
@@ -790,21 +668,13 @@ void handle_back_navigation() {
       go_settings();
       DEBUG_PRINTLN("going to scr_settings");
       break;
-    case SCREEN_MISC_SETTINGS:
-      go_misc_settings();
+    case SCREEN_DISPLAY_SETTINGS:
+      go_display_settings();
       DEBUG_PRINTLN("going to scr_misc_settings");
-      break;
-    case SCREEN_LED:
-      go_led();
-      DEBUG_PRINTLN("going to scr_led");
       break;
     case SCREEN_BL:
       go_backlight();
       DEBUG_PRINTLN("going to scr_bl");
-      break;
-    case SCREEN_TOUCH:
-      go_touch();
-      DEBUG_PRINTLN("going to scr_touch");
       break;
     case SCREEN_CELL_VOLTAGES:
       go_cell_voltages();

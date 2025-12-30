@@ -46,10 +46,8 @@ void go_main();
 void go_more();
 void go_connect_bms();
 void go_settings();
-void go_misc_settings();
-void go_led();
+void go_display_settings();
 void go_backlight();
-void go_touch();
 void go_rotate();
 void go_cell_voltages();
 void go_wire_resistances();
@@ -61,4 +59,3 @@ lv_obj_t* create_device_list_button(const char* name, const char* mac_address);
 void update_bms_display();
 
 // Callbacks
-void scr_led_cb(lv_event_t* e);
