@@ -58,4 +58,7 @@ lv_obj_t* create_device_list_button(const char* name, const char* mac_address);
 // Update functions
 void update_bms_display();
 
+// init
+void ui_init();
+
 // Callbacks

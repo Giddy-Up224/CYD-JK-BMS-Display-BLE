@@ -56,59 +56,8 @@ void setup() {
       mac_addr[sizeof(mac_addr)-1] = '\0'; // Ensure null-termination
   }
   
-  // Initialize LVGL and display
-  LVGL_CYD::begin(SCREEN_ORIENTATION);
-
-  // Setup LVGL layers
-  // Bottom layer: opaque white background
-  lv_obj_set_style_bg_opa(lv_layer_bottom(), LV_OPA_COVER, LV_PART_MAIN);
-  lv_obj_set_style_bg_color(lv_layer_bottom(), lv_color_white(), LV_PART_MAIN);
-
-  // Create exit button (top-right)
-  btn_exit = lv_obj_create(lv_layer_top());
-  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_add_flag(btn_exit, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_set_style_bg_opa(btn_exit, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(btn_exit, 0, LV_PART_MAIN);
-  lv_obj_set_size(btn_exit, 40, 40);
-  lv_obj_align(btn_exit, LV_ALIGN_TOP_RIGHT, 0, 0);
-  lv_obj_add_event_cb(btn_exit, [](lv_event_t* e) -> void {
-    go_main();
-  }, LV_EVENT_CLICKED, NULL);
-
-  // Exit button symbol
-  lv_obj_t* lbl_exit_symbol = lv_label_create(btn_exit);
-  lv_obj_set_style_text_font(lbl_exit_symbol, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_style_text_align(lbl_exit_symbol, LV_TEXT_ALIGN_RIGHT, 0);
-  lv_label_set_text(lbl_exit_symbol, LV_SYMBOL_CLOSE);
-  lv_obj_align(lbl_exit_symbol, LV_ALIGN_TOP_RIGHT, 5, -10);
-
-  // Create back button (top-left)
-  btn_back = lv_obj_create(lv_layer_top());
-  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_add_flag(btn_back, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_set_style_bg_opa(btn_back, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(btn_back, 0, LV_PART_MAIN);
-  lv_obj_set_size(btn_back, 40, 40);
-  lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 0, 0);
-
-  // Back button symbol
-  lv_obj_t* lbl_back_symbol = lv_label_create(btn_back);
-  lv_obj_set_style_text_font(lbl_back_symbol, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_style_text_align(lbl_back_symbol, LV_TEXT_ALIGN_CENTER, 0);
-  lv_label_set_text(lbl_back_symbol, LV_SYMBOL_BACKSPACE);
-  lv_obj_align(lbl_back_symbol, LV_ALIGN_TOP_MID, 5, -10);
-
-  // Init navigation callback for back button
-  ui_navigation_init();
-
-  // Page header
-  lbl_header = lv_label_create(lv_layer_top());
-  lv_obj_set_style_text_font(lbl_header, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_align(lbl_header, LV_ALIGN_TOP_MID, 5, 3);
-
-  // Launch main screen on startup
-  go_main();
+  // init display and elements
+  ui_init();
 
   // Initialize BLE
   DEBUG_PRINTLN("Initializing NimBLE Client...");
