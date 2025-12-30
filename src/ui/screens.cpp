@@ -57,6 +57,7 @@ lv_obj_t* new_screen(lv_obj_t* parent) {
 
 // Update BMS display with latest data from notify callback
 void update_bms_display() {
+  // TODO: change this to not use a single connected bool for all BMSes
   bool connected = false;
   JKBMS* connectedBMS = nullptr;
   
