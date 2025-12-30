@@ -27,4 +27,4 @@
 #define BMS_NOTIFY_IGNORE_COUNT 10    // Number of notifications to ignore after parsing
 
 // Display update interval
-#define DISPLAY_UPDATE_INTERVAL 1000  // Update display every 1000ms
+#define DISPLAY_UPDATE_INTERVAL 3000  // Update display every 3000ms
