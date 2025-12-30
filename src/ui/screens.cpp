@@ -700,15 +700,14 @@ void ui_navigation_init() {
   }, LV_EVENT_CLICKED, NULL);
 }
 
-void ui_init() {
-  // Initialize LVGL and display
-  LVGL_CYD::begin(SCREEN_ORIENTATION);
-
+void setup_lv_layers() {
   // Setup LVGL layers
   // Bottom layer: opaque white background
   lv_obj_set_style_bg_opa(lv_layer_bottom(), LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(lv_layer_bottom(), lv_color_white(), LV_PART_MAIN);
+}
 
+void create_exit_btn() {
   // Create exit button (top-right)
   btn_exit = lv_obj_create(lv_layer_top());
   lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_SCROLLABLE);
@@ -727,7 +726,9 @@ void ui_init() {
   lv_obj_set_style_text_align(lbl_exit_symbol, LV_TEXT_ALIGN_RIGHT, 0);
   lv_label_set_text(lbl_exit_symbol, LV_SYMBOL_CLOSE);
   lv_obj_align(lbl_exit_symbol, LV_ALIGN_TOP_RIGHT, 5, -10);
+}
 
+void create_back_btn() {
   // Create back button (top-left)
   btn_back = lv_obj_create(lv_layer_top());
   lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_SCROLLABLE);
@@ -743,6 +744,18 @@ void ui_init() {
   lv_obj_set_style_text_align(lbl_back_symbol, LV_TEXT_ALIGN_CENTER, 0);
   lv_label_set_text(lbl_back_symbol, LV_SYMBOL_BACKSPACE);
   lv_obj_align(lbl_back_symbol, LV_ALIGN_TOP_MID, 5, -10);
+}
+
+void ui_init() {
+  DEBUG_PRINTLN("Initializing UI...");
+  // Initialize LVGL and display
+  LVGL_CYD::begin(SCREEN_ORIENTATION);
+
+  setup_lv_layers();
+
+  create_exit_btn();
+
+  create_back_btn();
 
   // Init navigation callback for back button
   ui_navigation_init();
