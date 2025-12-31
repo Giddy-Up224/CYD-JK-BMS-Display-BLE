@@ -31,7 +31,7 @@ Preferences prefs;
 JKBMS jkBmsDevices[] = {
   // cast to std::string
   JKBMS(BMS_MAC_ADDRESS_1),
-  JKBMS(BMS_MAC_ADDRESS_2),
+  //JKBMS(BMS_MAC_ADDRESS_2),
   // Add more devices here if needed
   // JKBMS(BMS_MAC_ADDRESS_3)
 };
