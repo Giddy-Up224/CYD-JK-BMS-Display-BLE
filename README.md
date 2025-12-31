@@ -16,7 +16,7 @@ populating available device list.
 - Cell Voltages and Wire Resistances are available from their respective screens
 
 TODO:
-- Fix `copy_configs.py` not running at build time It was working previously with:
+- Figure out why `copy_configs.py` quit running at build time. It was working previously with:
 *   **Commit message:** `Made config files dynamic`
 *   **Commit ID:** `b0939e873625c80cb4075dd42cbb5476437747df`
 *   **Use Build Flags** instead of the `copy_configs.py` as [sivar explained on the forum](https://community.platformio.org/t/compiles-ok-on-linux-and-works-compiles-ok-on-windows-but-does-not-work/52634/6?u=guidable8662)
@@ -26,6 +26,8 @@ Future Features:
 - Show device name on home screen header (Or check out idea below)
 - Variable screen dimming using onboard LDR (option selectable from settings)
 - Add ability to show multiple devices by scrolling through main screen. (Or check out idea below)
+- Add voltage based SOC calculation in case Jikong's SOC calculations are as bad as the rest of the Chinese's SOC calculations.
+- Aggregate data from all connected devices.
 
 Where I'm going:
 - branch: `dev_redo_ui`
