@@ -245,11 +245,8 @@ void JKBMS::parseData() {
   new_data = false;
   ignoreNotifyCount = 10;
   // Cell voltages
-  // TODO: make this dynamic. Use:
-  // int cell_count_offset = 7;
-  // int cell_count_data_size = 2; // No. of bytes
-  // for (int j = 0, i = cell_count_offset; i < cell_count_offset + (cell_count * cell_count_data_size); j++, i += 2)
-  for (int j = 0, i = 7; i < 38; j++, i += 2) {
+  int cell_count_offset = 7; // data offset
+  for (int j = 0, i = cell_count_offset; i < cell_count_offset + (cell_count * 2); j++, i += 2) {
     cellVoltage[j] = ((receivedBytes[i] << 8 | receivedBytes[i - 1]) * 0.001);
   }
 
