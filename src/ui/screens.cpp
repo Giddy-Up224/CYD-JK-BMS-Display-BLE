@@ -19,6 +19,7 @@ lv_obj_t *res_high_low_avg_table = nullptr;
 lv_obj_t *scr_main = nullptr;
 lv_obj_t *scr_connect_jk_device = nullptr;
 lv_obj_t *scr_more = nullptr;
+lv_obj_t *scr_not_connected;
 lv_obj_t *scr_cell_voltages = nullptr;
 lv_obj_t *scr_cell_resistances = nullptr;
 lv_obj_t *scr_settings = nullptr;
@@ -51,13 +52,15 @@ lv_obj_t *new_screen(lv_obj_t *parent) {
   return obj;
 }
 
-// Update BMS display with latest data from notify callback
+// Global bms and connection status
 JKBMS *connectedBMS = nullptr;
+bool connected = false;
+
+// Update BMS display with latest data from notify callback
 void update_bms_display() {
   // TODO: fix not both BMS data showing in UI
   // If one BMS is connected it hogs the UI. Both BMS' 
   // data shows up in the Serial monitor, so it's getting the data.
-  bool connected = false;
   
   
   // Find first connected BMS
@@ -66,6 +69,8 @@ void update_bms_display() {
       connected = true;
       connectedBMS = &jkBmsDevices[i];
       break;
+    } else {
+      connected = false;
     }
   }
   
@@ -172,6 +177,20 @@ void update_bms_display() {
   }
 }
 
+// Not connected! warning screen
+void go_not_connected() {
+  if(!scr_not_connected) {
+    scr_not_connected = new_screen(NULL);
+
+    lv_obj_t *lbl_not_connected = lv_label_create(scr_not_connected);
+    lv_label_set_text(lbl_not_connected, "No BMS is connected!\nPlease connect to a\nBMS to view its data.");
+  }
+  lv_label_set_text(lbl_header, "No BMS Connected!");
+  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+  lv_screen_load(scr_not_connected);
+}
+
 // Backlight brightness screen
 void go_backlight() {
   if (!scr_backlight) {
@@ -263,152 +282,160 @@ void go_settings() {
 
 // Wire resistances screen
 void go_wire_resistances() {
-  if (!scr_cell_resistances) {
-    scr_cell_resistances = lv_obj_create(NULL);
-    lv_obj_set_style_bg_opa(scr_cell_resistances, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(scr_cell_resistances, 0, 0);
-    lv_obj_set_size(scr_cell_resistances, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+  if(connected) {
+    if (!scr_cell_resistances) {
+      scr_cell_resistances = lv_obj_create(NULL);
+      lv_obj_set_style_bg_opa(scr_cell_resistances, LV_OPA_TRANSP, LV_PART_MAIN);
+      lv_obj_set_style_border_width(scr_cell_resistances, 0, 0);
+      lv_obj_set_size(scr_cell_resistances, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    // Create scrollable container
-    lv_obj_t *scroll_container = lv_obj_create(scr_cell_resistances);
-    lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
-    lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(scroll_container, 0, 0);
-    lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
+      // Create scrollable container
+      lv_obj_t *scroll_container = lv_obj_create(scr_cell_resistances);
+      lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
+      lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
+      lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
+      lv_obj_set_style_border_width(scroll_container, 0, 0);
+      lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
+      lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
 
-    // Create table for high/low resistances
-    res_high_low_avg_table = lv_table_create(scroll_container);
-    lv_obj_set_size(res_high_low_avg_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+      // Create table for high/low resistances
+      res_high_low_avg_table = lv_table_create(scroll_container);
+      lv_obj_set_size(res_high_low_avg_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    int num_rows = 5; // Header + 4 rows
-    int num_cols = 3; // Description, Resistance, Cell#
+      int num_rows = 5; // Header + 4 rows
+      int num_cols = 3; // Description, Resistance, Cell#
 
-    lv_table_set_column_count(res_high_low_avg_table, num_cols);
-    lv_table_set_row_count(res_high_low_avg_table, num_rows);
+      lv_table_set_column_count(res_high_low_avg_table, num_cols);
+      lv_table_set_row_count(res_high_low_avg_table, num_rows);
 
-    lv_table_set_column_width(res_high_low_avg_table, 0, 100);
-    lv_table_set_column_width(res_high_low_avg_table, 1, 100);
-    lv_table_set_column_width(res_high_low_avg_table, 2, 100);
+      lv_table_set_column_width(res_high_low_avg_table, 0, 100);
+      lv_table_set_column_width(res_high_low_avg_table, 1, 100);
+      lv_table_set_column_width(res_high_low_avg_table, 2, 100);
 
-    lv_table_set_cell_value(res_high_low_avg_table, 0, 1, "Res.");
-    lv_table_set_cell_value(res_high_low_avg_table, 0, 2, "Cell#");
+      lv_table_set_cell_value(res_high_low_avg_table, 0, 1, "Res.");
+      lv_table_set_cell_value(res_high_low_avg_table, 0, 2, "Cell#");
 
-    lv_table_set_cell_value(res_high_low_avg_table, 1, 0, "High_Res.");
-    lv_table_set_cell_value(res_high_low_avg_table, 2, 0, "Low_Res.");
-    lv_table_set_cell_value(res_high_low_avg_table, 3, 0, "Delta_Res.");
-    lv_table_set_cell_value(res_high_low_avg_table, 4, 0, "Avg_Res.");
+      lv_table_set_cell_value(res_high_low_avg_table, 1, 0, "High_Res.");
+      lv_table_set_cell_value(res_high_low_avg_table, 2, 0, "Low_Res.");
+      lv_table_set_cell_value(res_high_low_avg_table, 3, 0, "Delta_Res.");
+      lv_table_set_cell_value(res_high_low_avg_table, 4, 0, "Avg_Res.");
 
-    lv_obj_set_style_bg_color(res_high_low_avg_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-    lv_obj_set_style_text_font(res_high_low_avg_table, &lv_font_montserrat_14, LV_PART_ITEMS);
+      lv_obj_set_style_bg_color(res_high_low_avg_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+      lv_obj_set_style_text_font(res_high_low_avg_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
-    for (int r = 1; r < num_rows; r++) {
-      lv_table_set_cell_value(res_high_low_avg_table, r, 1, "-");
-      lv_table_set_cell_value(res_high_low_avg_table, r, 2, "-");
+      for (int r = 1; r < num_rows; r++) {
+        lv_table_set_cell_value(res_high_low_avg_table, r, 1, "-");
+        lv_table_set_cell_value(res_high_low_avg_table, r, 2, "-");
+      }
+
+      // Create table for wire resistances
+      wire_res_table = lv_table_create(scroll_container);
+      lv_obj_set_size(wire_res_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+
+      lv_table_set_column_count(wire_res_table, 2);
+      lv_table_set_row_count(wire_res_table, connectedBMS->cell_count + 1); // cell_count + Header
+
+      lv_table_set_column_width(wire_res_table, 0, 80);
+      lv_table_set_column_width(wire_res_table, 1, 100);
+
+      lv_table_set_cell_value(wire_res_table, 0, 0, "Cell");
+      lv_table_set_cell_value(wire_res_table, 0, 1, "Res.");
+
+      lv_obj_set_style_bg_color(wire_res_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+      lv_obj_set_style_text_font(wire_res_table, &lv_font_montserrat_14, LV_PART_ITEMS);
+
+      for (int i = 1; i <= connectedBMS->cell_count; i++) {
+        lv_table_set_cell_value_fmt(wire_res_table, i, 0, "%d", i);
+        lv_table_set_cell_value(wire_res_table, i, 1, "");
+      }
     }
 
-    // Create table for wire resistances
-    wire_res_table = lv_table_create(scroll_container);
-    lv_obj_set_size(wire_res_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-
-    lv_table_set_column_count(wire_res_table, 2);
-    lv_table_set_row_count(wire_res_table, connectedBMS->cell_count + 1); // cell_count + Header
-
-    lv_table_set_column_width(wire_res_table, 0, 80);
-    lv_table_set_column_width(wire_res_table, 1, 100);
-
-    lv_table_set_cell_value(wire_res_table, 0, 0, "Cell");
-    lv_table_set_cell_value(wire_res_table, 0, 1, "Res.");
-
-    lv_obj_set_style_bg_color(wire_res_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-    lv_obj_set_style_text_font(wire_res_table, &lv_font_montserrat_14, LV_PART_ITEMS);
-
-    for (int i = 1; i <= connectedBMS->cell_count; i++) {
-      lv_table_set_cell_value_fmt(wire_res_table, i, 0, "%d", i);
-      lv_table_set_cell_value(wire_res_table, i, 1, "");
-    }
+    lv_label_set_text(lbl_header, "Wire Resistances");
+    lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+    lv_screen_load(scr_cell_resistances);
+  }else {
+    go_not_connected();
   }
-
-  lv_label_set_text(lbl_header, "Wire Resistances");
-  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-  lv_screen_load(scr_cell_resistances);
 }
 
 // Cell voltages screen
 void go_cell_voltages() {
-  if (!scr_cell_voltages) {
-    scr_cell_voltages = lv_obj_create(NULL);
-    lv_obj_set_style_bg_opa(scr_cell_voltages, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(scr_cell_voltages, 0, 0);
-    lv_obj_set_size(scr_cell_voltages, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
+  if(connected) {
+    if (!scr_cell_voltages) {
+      scr_cell_voltages = lv_obj_create(NULL);
+      lv_obj_set_style_bg_opa(scr_cell_voltages, LV_OPA_TRANSP, LV_PART_MAIN);
+      lv_obj_set_style_border_width(scr_cell_voltages, 0, 0);
+      lv_obj_set_size(scr_cell_voltages, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
 
-    // Create scrollable container
-    lv_obj_t *scroll_container = lv_obj_create(scr_cell_voltages);
-    lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
-    lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(scroll_container, 0, 0);
-    lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
+      // Create scrollable container
+      lv_obj_t *scroll_container = lv_obj_create(scr_cell_voltages);
+      lv_obj_set_size(scroll_container, lv_pct(100), lv_pct(100));
+      lv_obj_set_style_pad_all(scroll_container, 10, LV_PART_MAIN);
+      lv_obj_set_style_bg_opa(scroll_container, LV_OPA_TRANSP, LV_PART_MAIN);
+      lv_obj_set_style_border_width(scroll_container, 0, 0);
+      lv_obj_set_layout(scroll_container, LV_LAYOUT_FLEX);
+      lv_obj_set_flex_flow(scroll_container, LV_FLEX_FLOW_COLUMN);
 
-    // Create table for high/low voltages
-    delta_voltages_table = lv_table_create(scroll_container);
-    lv_obj_set_size(delta_voltages_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+      // Create table for high/low voltages
+      delta_voltages_table = lv_table_create(scroll_container);
+      lv_obj_set_size(delta_voltages_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    int num_rows = 5; // Header + 4 rows
-    int num_cols = 3; // Description, Voltage, Cell#
+      int num_rows = 5; // Header + 4 rows
+      int num_cols = 3; // Description, Voltage, Cell#
 
-    lv_table_set_column_count(delta_voltages_table, num_cols);
-    lv_table_set_row_count(delta_voltages_table, num_rows);
+      lv_table_set_column_count(delta_voltages_table, num_cols);
+      lv_table_set_row_count(delta_voltages_table, num_rows);
 
-    lv_table_set_column_width(delta_voltages_table, 0, 100);
-    lv_table_set_column_width(delta_voltages_table, 1, 100);
-    lv_table_set_column_width(delta_voltages_table, 2, 100);
+      lv_table_set_column_width(delta_voltages_table, 0, 100);
+      lv_table_set_column_width(delta_voltages_table, 1, 100);
+      lv_table_set_column_width(delta_voltages_table, 2, 100);
 
-    lv_table_set_cell_value(delta_voltages_table, 0, 1, "Voltage");
-    lv_table_set_cell_value(delta_voltages_table, 0, 2, "Cell#");
+      lv_table_set_cell_value(delta_voltages_table, 0, 1, "Voltage");
+      lv_table_set_cell_value(delta_voltages_table, 0, 2, "Cell#");
 
-    lv_table_set_cell_value(delta_voltages_table, 1, 0, "High_V");
-    lv_table_set_cell_value(delta_voltages_table, 2, 0, "Low_V");
-    lv_table_set_cell_value(delta_voltages_table, 3, 0, "Delta_V");
-    lv_table_set_cell_value(delta_voltages_table, 4, 0, "Avg_V");
+      lv_table_set_cell_value(delta_voltages_table, 1, 0, "High_V");
+      lv_table_set_cell_value(delta_voltages_table, 2, 0, "Low_V");
+      lv_table_set_cell_value(delta_voltages_table, 3, 0, "Delta_V");
+      lv_table_set_cell_value(delta_voltages_table, 4, 0, "Avg_V");
 
-    lv_obj_set_style_bg_color(delta_voltages_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-    lv_obj_set_style_text_font(delta_voltages_table, &lv_font_montserrat_14, LV_PART_ITEMS);
+      lv_obj_set_style_bg_color(delta_voltages_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+      lv_obj_set_style_text_font(delta_voltages_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
-    for (int r = 1; r < num_rows; r++) {
-      lv_table_set_cell_value(delta_voltages_table, r, 1, "-");
-      lv_table_set_cell_value(delta_voltages_table, r, 2, "-");
+      for (int r = 1; r < num_rows; r++) {
+        lv_table_set_cell_value(delta_voltages_table, r, 1, "-");
+        lv_table_set_cell_value(delta_voltages_table, r, 2, "-");
+      }
+
+      // Create table for cell voltages
+      cell_voltage_table = lv_table_create(scroll_container);
+      lv_obj_set_size(cell_voltage_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+
+      lv_table_set_column_count(cell_voltage_table, 2);
+      lv_table_set_row_count(cell_voltage_table, connectedBMS->cell_count + 1); // cell_count + 1 for header row
+
+      lv_table_set_column_width(cell_voltage_table, 0, 80);
+      lv_table_set_column_width(cell_voltage_table, 1, 100);
+
+      lv_table_set_cell_value(cell_voltage_table, 0, 0, "Cell");
+      lv_table_set_cell_value(cell_voltage_table, 0, 1, "Voltage (V)");
+
+      lv_obj_set_style_bg_color(cell_voltage_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
+      lv_obj_set_style_text_font(cell_voltage_table, &lv_font_montserrat_14, LV_PART_ITEMS);
+
+      for (int i = 1; i <= connectedBMS->cell_count; i++) {
+        lv_table_set_cell_value_fmt(cell_voltage_table, i, 0, "%d", i);
+        lv_table_set_cell_value(cell_voltage_table, i, 1, "0.000");
+      }
     }
 
-    // Create table for cell voltages
-    cell_voltage_table = lv_table_create(scroll_container);
-    lv_obj_set_size(cell_voltage_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-
-    lv_table_set_column_count(cell_voltage_table, 2);
-    lv_table_set_row_count(cell_voltage_table, connectedBMS->cell_count + 1); // cell_count + 1 for header row
-
-    lv_table_set_column_width(cell_voltage_table, 0, 80);
-    lv_table_set_column_width(cell_voltage_table, 1, 100);
-
-    lv_table_set_cell_value(cell_voltage_table, 0, 0, "Cell");
-    lv_table_set_cell_value(cell_voltage_table, 0, 1, "Voltage (V)");
-
-    lv_obj_set_style_bg_color(cell_voltage_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-    lv_obj_set_style_text_font(cell_voltage_table, &lv_font_montserrat_14, LV_PART_ITEMS);
-
-    for (int i = 1; i <= connectedBMS->cell_count; i++) {
-      lv_table_set_cell_value_fmt(cell_voltage_table, i, 0, "%d", i);
-      lv_table_set_cell_value(cell_voltage_table, i, 1, "0.000");
-    }
+    lv_label_set_text(lbl_header, "Cell Voltages");
+    lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
+    lv_screen_load(scr_cell_voltages);
+  } else {
+    go_not_connected();
   }
-
-  lv_label_set_text(lbl_header, "Cell Voltages");
-  lv_obj_clear_flag(btn_back, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(btn_exit, LV_OBJ_FLAG_HIDDEN);
-  lv_screen_load(scr_cell_voltages);
 }
 
 void save_mac_addr(const char *mac_addr) {
@@ -683,6 +710,10 @@ void handle_back_navigation() {
     case SCREEN_CELL_RESISTANCES:
       go_wire_resistances();
       DEBUG_PRINTLN("going to scr_cell_resistances");
+      break;
+    case SCREEN_NOT_CONNECTED:
+      go_not_connected();
+      DEBUG_PRINTLN("going to scr_not_connected");
       break;
     default:
       go_main();

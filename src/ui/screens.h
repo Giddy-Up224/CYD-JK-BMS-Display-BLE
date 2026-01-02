@@ -20,6 +20,7 @@ extern lv_obj_t *scr_main;
 extern lv_obj_t *scr_more;
 extern lv_obj_t *scr_connect_jk_device;
 extern lv_obj_t *scr_settings;
+extern lv_obj_t *scr_not_connected;
 extern lv_obj_t *scr_cell_voltages;
 extern lv_obj_t *scr_cell_resistances;
 extern lv_obj_t *scr_display_settings;
