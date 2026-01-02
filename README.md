@@ -3,7 +3,7 @@
 This project is based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms). I'm using [LVGL](https://lvgl.io/) so I can view the data and control the BMS directly on a [CYD](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display).
 
 
-
+Current development branch: [dev_redo_ui](https://github.com/Giddy-Up224/CYD-JK-BMS-Display-BLE/tree/dev_redo_ui)
 
 Current stage:
 - Changing from static MAC to storing MAc addresses in Preferences and using scan results for
