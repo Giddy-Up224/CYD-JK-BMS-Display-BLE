@@ -52,12 +52,13 @@ lv_obj_t *new_screen(lv_obj_t *parent) {
 }
 
 // Update BMS display with latest data from notify callback
+JKBMS *connectedBMS = nullptr;
 void update_bms_display() {
   // TODO: fix not both BMS data showing in UI
   // If one BMS is connected it hogs the UI. Both BMS' 
   // data shows up in the Serial monitor, so it's getting the data.
   bool connected = false;
-  JKBMS *connectedBMS = nullptr;
+  
   
   // Find first connected BMS
   for (int i = 0; i < bmsDeviceCount; i++) {
@@ -118,11 +119,11 @@ void update_bms_display() {
   // Update cell voltage table
   if (cell_voltage_table) {
     if (connected) {
-      for (int i = 0; i < 16; i++) {
+      for (int i = 0; i < connectedBMS->cell_count; i++) {
         lv_table_set_cell_value_fmt(cell_voltage_table, i + 1, 1, "%.3f", connectedBMS->cellVoltage[i]);
       }
     } else {
-      for (int i = 0; i < 16; i++) {
+      for (int i = 0; i < connectedBMS->cell_count; i++) {
         lv_table_set_cell_value(cell_voltage_table, i + 1, 1, "0.000");
       }
     }
@@ -160,11 +161,11 @@ void update_bms_display() {
   // Update wire resistance table
   if (wire_res_table) {
     if (connected) {
-      for (int i = 0; i < 16; i++) {
+      for (int i = 0; i < connectedBMS->cell_count; i++) {
         lv_table_set_cell_value_fmt(wire_res_table, i + 1, 1, "%.3f", connectedBMS->wireResist[i]);
       }
     } else {
-      for (int i = 0; i < 16; i++) {
+      for (int i = 0; i < connectedBMS->cell_count; i++) {
         lv_table_set_cell_value(wire_res_table, i + 1, 1, "-");
       }
     }
@@ -312,7 +313,7 @@ void go_wire_resistances() {
     lv_obj_set_size(wire_res_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     lv_table_set_column_count(wire_res_table, 2);
-    lv_table_set_row_count(wire_res_table, 17); // Header + 16 cells
+    lv_table_set_row_count(wire_res_table, connectedBMS->cell_count + 1); // cell_count + Header
 
     lv_table_set_column_width(wire_res_table, 0, 80);
     lv_table_set_column_width(wire_res_table, 1, 100);
@@ -323,7 +324,7 @@ void go_wire_resistances() {
     lv_obj_set_style_bg_color(wire_res_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_font(wire_res_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
-    for (int i = 1; i <= 16; i++) {
+    for (int i = 1; i <= connectedBMS->cell_count; i++) {
       lv_table_set_cell_value_fmt(wire_res_table, i, 0, "%d", i);
       lv_table_set_cell_value(wire_res_table, i, 1, "");
     }
@@ -387,7 +388,7 @@ void go_cell_voltages() {
     lv_obj_set_size(cell_voltage_table, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     lv_table_set_column_count(cell_voltage_table, 2);
-    lv_table_set_row_count(cell_voltage_table, 17); // Header + 16 cells
+    lv_table_set_row_count(cell_voltage_table, connectedBMS->cell_count + 1); // cell_count + 1 for header row
 
     lv_table_set_column_width(cell_voltage_table, 0, 80);
     lv_table_set_column_width(cell_voltage_table, 1, 100);
@@ -398,7 +399,7 @@ void go_cell_voltages() {
     lv_obj_set_style_bg_color(cell_voltage_table, lv_color_hex(0xE0E0E0), static_cast<lv_style_selector_t>(LV_PART_ITEMS) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
     lv_obj_set_style_text_font(cell_voltage_table, &lv_font_montserrat_14, LV_PART_ITEMS);
 
-    for (int i = 1; i <= 16; i++) {
+    for (int i = 1; i <= connectedBMS->cell_count; i++) {
       lv_table_set_cell_value_fmt(cell_voltage_table, i, 0, "%d", i);
       lv_table_set_cell_value(cell_voltage_table, i, 1, "0.000");
     }
