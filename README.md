@@ -1,45 +1,44 @@
 # CYD-JK-BMS-Display-BLE
 
-This project is based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms). I'm using [LVGL](https://lvgl.io/) so I can view the data and control the BMS directly on a [CYD](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display).
+This project is based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms). I'm using [LVGL](https://lvgl.io/) so I can view the data and control the BMS directly on a [CYD](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display) instead of using the web page interface.
 
 
 Current development branch: [dev_redo_ui](https://github.com/Giddy-Up224/CYD-JK-BMS-Display-BLE/tree/dev_redo_ui)
 
-Current stage:
-- Changing from static MAC to storing MAc addresses in Preferences and using scan results for
-populating available device list.
-    - If no devices are stored in memory, do not scan until the scan page is loaded.
-    - If there are devices saved in Preferences, try connecting to them on boot.
-    - Allow forgetting devices (delete from Preferences)
-- Continuing work on converting to LVGL instead of the webserver/webpage.
+Current feature list:
+- LVGL graphics instead of the webserver/webpage.
 - SOC, Voltage, and Current are displayed on home screen
 - Cell Voltages and Wire Resistances are available from their respective screens
-
-TODO:
-- Figure out why `copy_configs.py` quit running at build time. It was working previously with:
-*   **Commit message:** `Made config files dynamic`
-*   **Commit ID:** `b0939e873625c80cb4075dd42cbb5476437747df`
-*   **Use Build Flags** instead of the `copy_configs.py` as [sivar explained on the forum](https://community.platformio.org/t/compiles-ok-on-linux-and-works-compiles-ok-on-windows-but-does-not-work/52634/6?u=guidable8662)
-
-Future Features:
-- List and select available devices
-- Show device name on home screen header (Or check out idea below)
-- Variable screen dimming using onboard LDR (option selectable from settings)
-- Add ability to show multiple devices by scrolling through main screen. (Or check out idea below)
-- Add voltage based SOC calculation in case Jikong's SOC calculations are as bad as the rest of the Chinese's SOC calculations.
-- Aggregate data from all connected devices.
+- Minimal display options for orientation and display brightness. (Not saved on reboot as of now)
+- Connect a single BMS for monitoring.
 
 Where I'm going:
 - branch: `dev_redo_ui`
-- It is working half decently.
+- It is working OK with a single BMS. It is lacking a lot of the features at this point yet.
 - Check TODO for `update_bms_display()` in `screens.cpp`
 - I was thinking of having the UI cycle through all the connected BMSes and showing the connected BMS name with its data
 
+Future Features:
+- List and select available devices
+    - Change from static MAC to storing MAC addresses in Preferences (to save devices through power cycle) and using scan results for populating available device list.
+    - If no devices are stored in memory, do not scan until the scan page is loaded.
+    - If there are devices saved in Preferences, try connecting to them on boot.
+    - Allow forgetting devices (delete from Preferences)
+- Show device name on home screen header (Or check out idea below)
+- Variable screen dimming using onboard LDR (option selectable from settings)
+- Save display orientation selection to Preferences
+- Screen timeout
+    - Allow setting a timeout and saving to Preferences
+- Add ability to show multiple devices by scrolling through main screen. (Or check out idea below)
+- Add voltage based SOC calculation in case Jikong's SOC calculations are as bad as the rest of China's SOC calculations.
+- Aggregate data from all connected devices.
 
 ## Build Instructions
 
-I installed the PlatformIO VS Code extension. (hereafter referred to as PIO) 
+I installed the PlatformIO VS Code extension.
 Please follow PIO's installation instructions for best results.
+
+If you have an internet connection, you should be able to simply compile and upload.
 
 ### Setup
 
@@ -74,7 +73,3 @@ If you have any questions or simply want to share how you've used this repo, ple
 ## Credits
 
 Thanks to [@peff74](https://github.com/peff74/), FINALLY a solution that actually has the backend working out of the box!
-
-## References
-
-* Here's a potentially useful library for CYD: https://github.com/rzeldent/esp32-smartdisplay
