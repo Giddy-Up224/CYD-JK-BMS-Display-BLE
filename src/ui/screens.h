@@ -49,9 +49,6 @@ void go_rotate();
 void go_cell_voltages();
 void go_wire_resistances();
 
-// element creation functions
-lv_obj_t *create_device_list_button(const char *name, const char *mac_address);
-
 // Update functions
 void update_bms_display();
 
