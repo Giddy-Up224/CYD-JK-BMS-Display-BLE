@@ -15,34 +15,13 @@
 //********************************************
 // Global Variables
 //********************************************
-#define BMS_MAC_ADDRESS_1 "c8:47:80:23:4f:95"
-#define BMS_MAC_ADDRESS_2 "c8:47:80:3d:6f:b5"
 
-// Create prefs object to store settings etc. 
+// Create prefs object to store settings, saved devices etc.
 Preferences prefs;
-
-// get stored mac address, default to "c8:47:80:23:4f:95" if not set
-// TODO: change to use results from scanning to populate this list. 
-// Save to preferences when selected.
-//String mac_address1 = prefs.getString("mac1", "c8:47:80:23:4f:95");
-//char mac_addr [18];
-  
-// BMS devices array
-JKBMS jkBmsDevices[] = {
-  // cast to std::string
-  JKBMS(BMS_MAC_ADDRESS_1),
-  //JKBMS(BMS_MAC_ADDRESS_2),
-  // Add more devices here if needed
-  // JKBMS(BMS_MAC_ADDRESS_3)
-};
-
-const int bmsDeviceCount = sizeof(jkBmsDevices) / sizeof(jkBmsDevices[0]);
-
-// BLE scanning
-unsigned long lastScanTime = 0;
 
 // Function prototypes
 void update_display();
+void handle_serial();
 
 //********************************************
 // Setup Function
@@ -51,28 +30,12 @@ void setup() {
   Serial.begin(115200);
   lastMillis = millis();
   prefs.begin("JK BMS", false);
-  
-  //if(prefs.isKey("mac1")) {
-  //    prefs.getString("mac1", mac_addr, sizeof(mac_addr));
-  //} else {
-  //    strncpy(mac_addr, "c8:47:80:23:4f:95", sizeof(mac_addr));
-  //    mac_addr[sizeof(mac_addr)-1] = '\0'; // Ensure null-termination
-  //}
-  
+
   // init display and elements
   ui_init();
 
-  // Initialize BLE
-  DEBUG_PRINTLN("Initializing NimBLE Client...");
-  // Print configured BMS devices
-  for (int i = 0; i < bmsDeviceCount; i++) {
-    DEBUG_PRINTF("BMS Device %d: MAC = %s\n", i, jkBmsDevices[i].targetMAC.c_str());
-  }
-
-  NimBLEDevice::init("MultiJKBMS-Client");
-  NimBLEDevice::setPower(3);
-
-  scanForDevices();
+  // Initialize BLE, load saved devices and start looking for them
+  bms_init();
 }
 
 //********************************************
@@ -84,40 +47,10 @@ void loop() {
 
   update_display();
 
-  // BMS Connection management
-  int connectedCount = 0;
+  // BMS connection management
+  bms_loop();
 
-  for (int i = 0; i < bmsDeviceCount; i++) {
-    if (jkBmsDevices[i].targetMAC.empty()) continue;
-
-    // Connect to BMS if needed
-    if (jkBmsDevices[i].doConnect && !jkBmsDevices[i].connected) {
-      DEBUG_PRINTF("Attempting to connect to: %d (%s)...\n", i, jkBmsDevices[i].targetMAC.c_str());
-      if (jkBmsDevices[i].connectToServer()) {
-        DEBUG_PRINTF("%s connected successfully\n", jkBmsDevices[i].targetMAC.c_str());
-      } else {
-        DEBUG_PRINTF("%s connection failed\n", jkBmsDevices[i].targetMAC.c_str());
-      }
-      jkBmsDevices[i].doConnect = false;
-    }
-
-    // Check for connection timeout
-    if (jkBmsDevices[i].connected) {
-      connectedCount++;
-      if (millis() - jkBmsDevices[i].lastNotifyTime > BMS_CONNECTION_TIMEOUT) {
-        DEBUG_PRINTF("%s connection timeout\n", jkBmsDevices[i].targetMAC.c_str());
-        NimBLEClient *pClient = NimBLEDevice::getClientByPeerAddress(jkBmsDevices[i].advDevice->getAddress());
-        if (pClient) pClient->disconnect();
-      }
-    }
-  }
-
-  // Start scan if not all devices are connected
-  if (connectedCount < bmsDeviceCount && (millis() - lastScanTime >= BLE_SCAN_PERIOD)) {
-    DEBUG_PRINTLN("Starting scan...");
-    pScan->start(BLE_SCAN_TIME, false, true);
-    lastScanTime = millis();
-  }
+  handle_serial();
 
   delay(10);
 }
@@ -130,5 +63,66 @@ void update_display() {
   if (millis() - lastDisplayUpdate >= DISPLAY_UPDATE_INTERVAL) {
     update_bms_display();
     lastDisplayUpdate = millis();
+  }
+}
+
+//********************************************
+// Serial commands (handy for debugging without touching the screen)
+//********************************************
+static void print_devices() {
+  Serial.println("Saved devices:");
+  for (int i = 0; i < bmsDeviceCount; i++) {
+    const JKBMS &d = jkBmsDevices[i];
+    if (!d.inUse()) {
+      Serial.printf("  [%d] <empty>\n", i);
+      continue;
+    }
+    Serial.printf("  [%d] %s %s %s proto=%s model=%s hw=%s cells=%d %.2fV\n", i, d.targetMAC.c_str(),
+                  d.name.c_str(), d.connected ? "CONNECTED" : "disconnected", jk_protocol_name(d.protocol),
+                  d.vendorId.c_str(), d.hardwareVersion.c_str(), d.cell_count, d.Battery_Voltage);
+  }
+  Serial.printf("Found devices%s:\n", bms_is_scanning() ? " (scanning)" : "");
+  for (const FoundDevice &f : bms_get_found_devices()) {
+    Serial.printf("  %s %-20s %d dBm\n", f.mac.c_str(), f.name.c_str(), f.rssi);
+  }
+}
+
+void handle_serial() {
+  static String line;
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c != '\n' && c != '\r') {
+      if (line.length() < 64) line += c;
+      continue;
+    }
+    line.trim();
+    if (line.isEmpty()) continue;
+
+    if (line == "scan") {
+      bms_start_user_scan();
+    } else if (line == "list") {
+      print_devices();
+    } else if (line.startsWith("add ")) {
+      String mac = line.substring(4);
+      mac.trim();
+      mac.toLowerCase();
+      // Use the name/address type from the scan results if we saw it
+      std::string name;
+      uint8_t type = BLE_ADDR_PUBLIC;
+      for (const FoundDevice &f : bms_get_found_devices()) {
+        if (f.mac == mac.c_str()) { name = f.name; type = f.addrType; }
+      }
+      int slot = bms_add_device(mac.c_str(), type, name);
+      if (slot >= 0) Serial.printf("Added to slot %d\n", slot);
+      else Serial.println("No free slot, forget a device first");
+    } else if (line.startsWith("forget ")) {
+      String mac = line.substring(7);
+      mac.trim();
+      mac.toLowerCase();
+      Serial.println(bms_forget_device(mac.c_str()) ? "Forgotten" : "Not saved");
+    } else {
+      Serial.println("Commands: scan | list | add <mac> | forget <mac>");
+    }
+    line = "";
   }
 }
