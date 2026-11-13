@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "bms/bms_data.h"
+#include "esp_bt.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -398,7 +399,18 @@ static void linkTask(void *) {
             char a[18];
             bleAddrStr(target.addr, a);
             ESP_LOGI(TAG, "Connecting to %s (%s)", target.name[0] ? target.name : "?", a);
-            int rc = ble_gap_connect(ownAddrType_, &addr, CONNECT_TIMEOUT_MS, nullptr, onGap, nullptr);
+            // 15-30 ms interval like the JK app; a generous supervision
+            // timeout (4 s) so a weak link survives a few lost packets
+            ble_gap_conn_params params = {};
+            params.scan_itvl = 0x0010;
+            params.scan_window = 0x0010;
+            params.itvl_min = 12;   // x 1.25 ms
+            params.itvl_max = 24;
+            params.latency = 0;
+            params.supervision_timeout = 400;  // x 10 ms
+            params.min_ce_len = 0;
+            params.max_ce_len = 0;
+            int rc = ble_gap_connect(ownAddrType_, &addr, CONNECT_TIMEOUT_MS, &params, onGap, nullptr);
             EventBits_t bits = 0;
             if(rc == 0) {
                 bits = xEventGroupWaitBits(events_, READY | DOWN | WAKE, pdFALSE, pdFALSE, pdMS_TO_TICKS(SETUP_TIMEOUT_MS));
@@ -449,6 +461,12 @@ static void linkTask(void *) {
 // --- NimBLE host
 
 static void onSync() {
+    // Full transmit power (+9 dBm): the JK device is often a few rooms away
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN, ESP_PWR_LVL_P9);
+    for(int i = ESP_BLE_PWR_TYPE_CONN_HDL0; i <= ESP_BLE_PWR_TYPE_CONN_HDL8; i++) {
+        esp_ble_tx_power_set(static_cast<esp_ble_power_type_t>(i), ESP_PWR_LVL_P9);
+    }
     ble_hs_util_ensure_addr(0);
     ble_hs_id_infer_auto(0, &ownAddrType_);
     xEventGroupSetBits(events_, SYNCED);

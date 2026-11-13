@@ -21,7 +21,14 @@ extern "C" void app_main(void) {
     }
     bmsDataInit();
     bleStart();
+#ifdef NO_DISPLAY
+    // Test build (env:cyd_nodisplay): BLE without the screen, backlight off
+    gpio_set_direction(LCD_BL, GPIO_MODE_OUTPUT);
+    gpio_set_level(LCD_BL, 0);
+    if(false) {
+#else
     if(displayInit() == ESP_OK) {
+#endif
         uiStart();
     } else {
         ESP_LOGE(TAG, "No display");  // the BLE link and console still run
