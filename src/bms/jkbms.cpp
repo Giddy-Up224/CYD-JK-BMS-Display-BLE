@@ -177,6 +177,7 @@ void JKBMS::handleNotification(uint8_t *pData, size_t length) {
         break;
       case 0x02:
         DEBUG_PRINTLN("Cell data frame detected.");
+        memcpy(lastCellFrame, receivedBytes, JK_FRAME_SIZE);
         parseData();
         break;
       case 0x03:
@@ -189,6 +190,25 @@ void JKBMS::handleNotification(uint8_t *pData, size_t length) {
     }
     return;  // Remaining bytes of this notification (if any) are padding
   }
+}
+
+static void dump_hex(Print &out, const char *title, const uint8_t *b, int len) {
+  out.printf("%s:\n", title);
+  for (int i = 0; i < len; i += 16) {
+    out.printf("  %03d:", i);
+    for (int j = i; j < i + 16 && j < len; j++) out.printf(" %02X", b[j]);
+    out.println();
+  }
+}
+
+void JKBMS::dumpFrames(Print &out) {
+  out.printf("=== DUMP %s (%s) proto=%s model=%s hw=%s sw=%s ===\n", targetMAC.c_str(), name.c_str(),
+             jk_protocol_name(protocol), vendorId.c_str(), hardwareVersion.c_str(), softwareVersion.c_str());
+  if (haveSettings) dump_hex(out, "Settings frame (0x01)", settingsBytes, JK_FRAME_SIZE);
+  else out.println("Settings frame (0x01): not received");
+  if (hasData()) dump_hex(out, "Cell info frame (0x02)", lastCellFrame, JK_FRAME_SIZE);
+  else out.println("Cell info frame (0x02): not received");
+  out.println("=== END DUMP ===");
 }
 
 void JKBMS::writeRegister(uint8_t address, uint32_t value, uint8_t length) {

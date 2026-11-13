@@ -102,6 +102,12 @@ void handle_serial() {
       bms_start_user_scan();
     } else if (line == "list") {
       print_devices();
+    } else if (line == "dump") {
+      int n = 0;
+      for (int i = 0; i < bmsDeviceCount; i++) {
+        if (jkBmsDevices[i].connected) { jkBmsDevices[i].dumpFrames(Serial); n++; }
+      }
+      if (!n) Serial.println("No connected devices to dump");
     } else if (line.startsWith("add ")) {
       String mac = line.substring(4);
       mac.trim();
@@ -121,7 +127,7 @@ void handle_serial() {
       mac.toLowerCase();
       Serial.println(bms_forget_device(mac.c_str()) ? "Forgotten" : "Not saved");
     } else {
-      Serial.println("Commands: scan | list | add <mac> | forget <mac>");
+      Serial.println("Commands: scan | list | dump | add <mac> | forget <mac>");
     }
     line = "";
   }

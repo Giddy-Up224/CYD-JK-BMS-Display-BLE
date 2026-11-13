@@ -54,6 +54,7 @@ public:
   // Data Processing
   byte receivedBytes[320];
   byte settingsBytes[JK_FRAME_SIZE];
+  byte lastCellFrame[JK_FRAME_SIZE];  // Raw copy of the latest cell info frame (for `dump`)
   bool haveSettings = false;
   bool settingsParsed = false;
   int frame = 0;
@@ -127,6 +128,8 @@ public:
   void bms_settings();
   void writeRegister(uint8_t address, uint32_t value, uint8_t length);
   void handleNotification(uint8_t *pData, size_t length);
+  // Print the raw settings and latest cell info frames as hex (serial `dump`)
+  void dumpFrames(Print &out);
 
 private:
   uint8_t crc(const uint8_t data[], uint16_t len);

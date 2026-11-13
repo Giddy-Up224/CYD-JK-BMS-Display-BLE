@@ -21,7 +21,7 @@ Current feature list:
     - `JK02_32S`: newer BMS (hardware >= 11), e.g. JK-B1A8S10P, JK-PB series
     - `JK02_24S`: older BMS (hardware < 11) and JK active balancers
     - `JK04`: older JK-B2A16S style balancers (experimental, only cell voltages/resistances are decoded)
-- Serial commands (115200 baud) for debugging: `scan`, `list`, `add <mac>`, `forget <mac>`.
+- Serial commands (115200 baud) for debugging: `scan`, `list`, `dump` (raw frames in hex), `add <mac>`, `forget <mac>`.
 
 Where I'm going:
 - branch: `dev_redo_ui`
