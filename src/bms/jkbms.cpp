@@ -173,7 +173,7 @@ void JKBMS::handleNotification(uint8_t *pData, size_t length) {
         memcpy(settingsBytes, receivedBytes, JK_FRAME_SIZE);
         haveSettings = true;
         settingsParsed = false;
-        if (protocol == JKProtocol::JK02_24S || protocol == JKProtocol::JK02_32S) bms_settings();
+        if (protocol != JKProtocol::Unknown) parseSettings();
         break;
       case 0x02:
         DEBUG_PRINTLN("Cell data frame detected.");
@@ -338,7 +338,7 @@ void JKBMS::detectProtocol() {
                hardwareVersion.c_str());
 
   // Settings arrived before we knew the layout, decode them now
-  if (haveSettings && !settingsParsed && protocol != JKProtocol::JK04) bms_settings();
+  if (haveSettings && !settingsParsed) parseSettings();
 }
 
 void JKBMS::parseData() {
@@ -402,8 +402,20 @@ void JKBMS::parseCellInfoJK02(int offset) {
   Balance = b[169 + o2] > 0;
 }
 
-// JK04 cell info frame (older JK balancers). Experimental: only the cell
-// voltages and resistances are decoded, totals are computed locally.
+// Plausible float or fallback (rejects NaN / garbage)
+static float sane_f32(const uint8_t *b, int i, float lo, float hi, float fallback) {
+  float f = le_f32(b, i);
+  return (f >= lo && f <= hi) ? f : fallback;
+}
+
+// JK04 cell info frame (older JK balancers, e.g. JK-B1A16S hw 8.x).
+// Offsets verified against the JK app on a JK-B1A16S (hw 8.X-W, sw 8.05):
+//   6 + 4n  cell voltage n (float, V)       102 + 4n  wire resistance n (float, Ohm)
+//   202     average cell voltage (float)    206       delta cell voltage (float)
+//   218     highest cell (0-based)          219       lowest cell (0-based)
+//   242     uptime (uint32, 0.1 s)          286       uptime (uint24, s)
+// Not yet verified while balancing:
+//   210     balance current (float, A)      220       balancing action
 void JKBMS::parseCellInfoJK04() {
   const uint8_t *b = receivedBytes;
   const int maxCells = 24;
@@ -427,11 +439,48 @@ void JKBMS::parseCellInfoJK04() {
 
   cell_count = n;
   Battery_Voltage = sum;
-  Average_Cell_Voltage = n ? sum / n : 0;
-  Delta_Cell_Voltage = n ? high - low : 0;
+  // Prefer the balancer's own figures, fall back to locally computed ones
+  Average_Cell_Voltage = sane_f32(b, 202, 0.5f, 5.0f, n ? sum / n : 0);
+  Delta_Cell_Voltage = sane_f32(b, 206, 0.0f, 5.0f, n ? high - low : 0);
+  Balance_Curr = sane_f32(b, 210, -10.0f, 10.0f, 0);
+  Balancing_Action = b[220];
   Charge_Current = 0;
   Battery_Power = 0;
   Percent_Remain = 0;
+
+  Uptime = b[286] | (b[287] << 8) | (b[288] << 16);
+  uint32_t t = Uptime;
+  sec = t % 60; t /= 60;
+  mi = t % 60;  t /= 60;
+  hr = t % 24;
+  days = t / 24;
+}
+
+// JK04 settings frame. Verified against the JK app on a JK-B1A16S:
+//   34 cell count (uint8)       38 power off voltage (float)
+//   106 trigger delta (float)   114 balancing switch (uint8)
+// Bytes 6 and 110 are both 1.0 here (start balance voltage and max balance
+// current in the app). The order 106/110/114 matches the RS485/CAN protocol
+// docs (trigger delta, max balance current, switch), so 110 = max current.
+void JKBMS::parseSettingsJK04() {
+  const uint8_t *b = settingsBytes;
+  settingsParsed = true;
+
+  balance_starting_voltage = sane_f32(b, 6, 0.0f, 5.0f, 0);
+  power_off_voltage = sane_f32(b, 38, 0.0f, 5.0f, 0);
+  balance_trigger_voltage = sane_f32(b, 106, 0.0f, 5.0f, 0);
+  max_balance_current = sane_f32(b, 110, 0.0f, 20.0f, 0);
+  Balance = b[114] != 0;
+  if (cell_count == 0 && b[34] > 0 && b[34] <= JK_MAX_CELLS) cell_count = b[34];
+
+  DEBUG_PRINTF("JK04 settings: cells %d  trigger delta %.3fV  start %.2fV  max balance %.3fA  power off %.3fV  balancing %s\n",
+               b[34], balance_trigger_voltage, balance_starting_voltage, max_balance_current, power_off_voltage,
+               Balance ? "on" : "off");
+}
+
+void JKBMS::parseSettings() {
+  if (protocol == JKProtocol::JK04) parseSettingsJK04();
+  else bms_settings();
 }
 
 void JKBMS::logCellData() {

@@ -137,6 +137,9 @@ private:
   bool jk02LayoutPlausible(int offset);
   void parseCellInfoJK02(int offset);
   void parseCellInfoJK04();
+  void parseSettingsJK04();
+  // Decode the stored settings frame with the parser for the detected protocol
+  void parseSettings();
   void logCellData();
 };
 
