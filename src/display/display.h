@@ -11,6 +11,9 @@
 // Panel, touch and LVGL; starts the LVGL task
 esp_err_t displayInit();
 
+// Prints the next frame over serial (tools/shots.py turns it into a PNG)
+void displayScreenshot(const char *name);
+
 void lvglLock();
 void lvglUnlock();
 

@@ -12,7 +12,9 @@
 #include "freertos/task.h"
 #include "lvgl.h"
 #include "esp_log.h"
+#include "mbedtls/base64.h"
 #include "touch.h"
+#include <stdio.h>
 
 static const char *TAG = "Display";
 
@@ -47,8 +49,38 @@ static bool flushDone(esp_lcd_panel_io_handle_t, esp_lcd_panel_io_event_data_t *
     return false;
 }
 
+// Screenshot in progress: every area of the next frame is printed
+static volatile bool shotActive_ = false;
+
+static void printArea(const lv_area_t *area, const uint8_t *pixels) {
+    int w = lv_area_get_width(area);
+    printf("AREA %d %d %d %d\n", (int)area->x1, (int)area->y1, (int)area->x2, (int)area->y2);
+    unsigned char out[LCD_H_RES * 2 * 4 / 3 + 8];
+    for(int y = 0; y < lv_area_get_height(area); y++) {
+        size_t n;
+        mbedtls_base64_encode(out, sizeof(out), &n, pixels + y * w * 2, w * 2);
+        out[n] = 0;
+        printf("%s\n", out);
+    }
+}
+
+void displayScreenshot(const char *name) {
+    LvglLock lock;
+    printf("SHOT %s %d %d\n", name, LCD_H_RES, LCD_V_RES);
+    shotActive_ = true;
+    lv_obj_invalidate(lv_screen_active());
+    lv_obj_invalidate(lv_layer_top());
+}
+
 static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels) {
     if(!backlightOn_ && lv_display_flush_is_last(disp)) lastQueued_ = true;
+    if(shotActive_) {
+        printArea(area, pixels);
+        if(lv_display_flush_is_last(disp)) {
+            printf("END\n");
+            shotActive_ = false;
+        }
+    }
     // the ILI9341 takes RGB565 big-endian
     lv_draw_sw_rgb565_swap(pixels, lv_area_get_size(area));
     esp_lcd_panel_draw_bitmap(panel_, area->x1, area->y1, area->x2 + 1, area->y2 + 1, pixels);
