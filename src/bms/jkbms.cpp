@@ -413,9 +413,9 @@ static float sane_f32(const uint8_t *b, int i, float lo, float hi, float fallbac
 //   6 + 4n  cell voltage n (float, V)       102 + 4n  wire resistance n (float, Ohm)
 //   202     average cell voltage (float)    206       delta cell voltage (float)
 //   218     highest cell (0-based)          219       lowest cell (0-based)
+//   220     balancing state (0 waiting, 2 balancing)
+//   222     balance current (float, A, negative while balancing)
 //   242     uptime (uint32, 0.1 s)          286       uptime (uint24, s)
-// Not yet verified while balancing:
-//   210     balance current (float, A)      220       balancing action
 void JKBMS::parseCellInfoJK04() {
   const uint8_t *b = receivedBytes;
   const int maxCells = 24;
@@ -442,7 +442,7 @@ void JKBMS::parseCellInfoJK04() {
   // Prefer the balancer's own figures, fall back to locally computed ones
   Average_Cell_Voltage = sane_f32(b, 202, 0.5f, 5.0f, n ? sum / n : 0);
   Delta_Cell_Voltage = sane_f32(b, 206, 0.0f, 5.0f, n ? high - low : 0);
-  Balance_Curr = sane_f32(b, 210, -10.0f, 10.0f, 0);
+  Balance_Curr = sane_f32(b, 222, -20.0f, 20.0f, 0);
   Balancing_Action = b[220];
   Charge_Current = 0;
   Battery_Power = 0;
@@ -456,12 +456,11 @@ void JKBMS::parseCellInfoJK04() {
   days = t / 24;
 }
 
-// JK04 settings frame. Verified against the JK app on a JK-B1A16S:
-//   34 cell count (uint8)       38 power off voltage (float)
-//   106 trigger delta (float)   114 balancing switch (uint8)
-// Bytes 6 and 110 are both 1.0 here (start balance voltage and max balance
-// current in the app). The order 106/110/114 matches the RS485/CAN protocol
-// docs (trigger delta, max balance current, switch), so 110 = max current.
+// JK04 settings frame. Verified against the JK app on a JK-B1A16S by
+// changing each setting in the app:
+//   6 start balance voltage (float)   34 cell count (uint8)
+//   38 power off voltage (float)      106 trigger delta (float)
+//   110 max balance current (float)   114 balancing switch (uint8)
 void JKBMS::parseSettingsJK04() {
   const uint8_t *b = settingsBytes;
   settingsParsed = true;
