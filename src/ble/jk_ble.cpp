@@ -419,7 +419,12 @@ static void linkTask(void *) {
             }
             if(!(bits & READY)) {
                 disconnect();
-                if(bits & WAKE) continue;  // mode or target changed meanwhile
+                if(bits & WAKE) {
+                    // mode or target changed meanwhile: let the cancel finish
+                    // before the next connect, or that one fails as busy
+                    xEventGroupWaitBits(events_, DOWN, pdFALSE, pdFALSE, pdMS_TO_TICKS(1000));
+                    continue;
+                }
                 ESP_LOGI(TAG, "Retrying in %d s", backoff / 1000);
                 pause(backoff);
                 backoff = backoff * 2 > BACKOFF_MAX_MS ? BACKOFF_MAX_MS : backoff * 2;
