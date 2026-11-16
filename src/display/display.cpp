@@ -60,7 +60,8 @@ static void printArea(const lv_area_t *area, const uint8_t *pixels) {
         size_t n;
         mbedtls_base64_encode(out, sizeof(out), &n, pixels + y * w * 2, w * 2);
         out[n] = 0;
-        printf("%s\n", out);
+        // row number first: a line lost on the way can't shift the rows after it
+        printf("R%d %s\n", (int)area->y1 + y, out);
     }
 }
 

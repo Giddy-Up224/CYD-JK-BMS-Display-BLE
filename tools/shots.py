@@ -3,7 +3,7 @@
 The `shot [name]` console command prints the next frame as
     SHOT <name> <w> <h>
     AREA <x1> <y1> <x2> <y2>
-    <one base64 line of RGB565 pixels per row of the area>
+    R<y> <base64 RGB565 pixels of row y of the area>
     ...
     END
 
@@ -20,7 +20,7 @@ from PIL import Image
 def main(log: Path, out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     img = name = area = None
-    row = 0
+    filled = set()
     for line in log.read_text(encoding="utf-8", errors="replace").splitlines():
         line = line.strip()
         parts = line.split()
@@ -30,22 +30,32 @@ def main(log: Path, out: Path) -> None:
             area = None
         elif img and line.startswith("AREA ") and len(parts) == 5:
             area = [int(p) for p in parts[1:]]
-            row = 0
         elif img and line == "END":
+            # rows lost on the serial link: repeat the row above
+            px = img.load()
+            for y in range(1, img.height):
+                if y not in filled and y - 1 in filled:
+                    for x in range(img.width):
+                        px[x, y] = px[x, y - 1]
+                    filled.add(y)
+            filled = set()
             img.save(out / f"{name}.png")
             print(f"{name}.png")
             img = None
-        elif img and area and line and " " not in line:
+        elif img and area and line.startswith("R") and len(parts) == 2:
             try:
-                raw = base64.b64decode(line, validate=True)
+                y = int(parts[0][1:])
+                raw = base64.b64decode(parts[1], validate=True)
             except ValueError:
-                continue  # a log line from another task in between
-            x1, y1, x2, _ = area
+                continue  # garbled on the way
+            x1, _, x2, _ = area
+            if len(raw) != 2 * (x2 - x1 + 1) or not 0 <= y < img.height:
+                continue
             px = img.load()
-            for i in range(min(len(raw) // 2, x2 - x1 + 1)):
+            for i in range(x2 - x1 + 1):
                 v = raw[2 * i] | raw[2 * i + 1] << 8
-                px[x1 + i, y1 + row] = ((v >> 11) << 3, ((v >> 5) & 0x3F) << 2, (v & 0x1F) << 3)
-            row += 1
+                px[x1 + i, y] = ((v >> 11) << 3, ((v >> 5) & 0x3F) << 2, (v & 0x1F) << 3)
+            filled.add(y)
 
 
 if __name__ == "__main__":
