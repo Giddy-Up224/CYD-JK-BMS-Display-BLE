@@ -7,3 +7,7 @@
 # Claude Code configuration (user-specific)
 CLAUDE.md
 logs/
+# ESP-IDF: generated sdkconfig per env, fetched components
+sdkconfig.*
+!sdkconfig.defaults*
+managed_components/
