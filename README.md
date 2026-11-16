@@ -10,6 +10,14 @@ uses ESP-IDF's NimBLE.
 
 Originally based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms).
 
+| Overview | Cells |
+|---|---|
+| ![Overview](doc/screenshots/overview.png) | ![Cells](doc/screenshots/cells.png) |
+| **Wire resistance** | **Device** |
+| ![Wire resistance](doc/screenshots/resistance.png) | ![Device](doc/screenshots/device.png) |
+
+*A JK-B1A16S balancer, 16 cells. Captured with the `shot` console command.*
+
 ## Features
 
 - **Pick the device on screen.** On first boot the CYD scans and lists the JK devices nearby with their

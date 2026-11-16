@@ -247,8 +247,8 @@ static void cellsJK04(const uint8_t *b, JkCells &c) {
     // the balancer's own figures if they look right
     c.avgV = f32In(b, 202, 0.5f, 5.0f, n ? total / n : 0);
     c.deltaV = f32In(b, 206, 0.0f, 5.0f, c.maxV - c.minV);
-    if(b[218] < n) c.maxCell = b[218];
-    if(b[219] < n) c.minCell = b[219];
+    // bytes 218/219 (highest/lowest cell) lag the voltages in the same
+    // frame, so minMax() above decides which cells are highest and lowest
     c.balancing = b[220];
     c.balanceA = f32In(b, 222, -20.0f, 20.0f, 0);
     c.uptimeS = b[286] | (b[287] << 8) | (b[288] << 16);
