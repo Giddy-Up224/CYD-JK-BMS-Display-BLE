@@ -80,7 +80,11 @@ void infoUpdate(const BmsSnapshot &d) {
         uiSetText(model_, info.model[0] ? info.model : "JK device");
         snprintf(buf, sizeof(buf), "HW %s  SW %s  %s", info.hw, info.sw, jkProtoName(d.proto));
         uiSetText(versions_, buf);
-        snprintf(buf, sizeof(buf), "%s  SN %s", d.addr, info.serial);
+        if(info.serial[0]) {
+            snprintf(buf, sizeof(buf), "%s  SN %s", d.addr, info.serial);
+        } else {
+            snprintf(buf, sizeof(buf), "%s", d.addr);
+        }
         uiSetText(serial_, buf);
     } else {
         uiSetText(model_, d.name[0] ? d.name : "No device");

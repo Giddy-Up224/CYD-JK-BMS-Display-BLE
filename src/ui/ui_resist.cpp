@@ -13,8 +13,8 @@ void resistBuild(lv_obj_t *page) {
 
 void resistUpdate(const BmsSnapshot &d) {
     if(!uiFresh(d)) {
-        gridChip(grid_, 0, "Lowest", "--", UI_FAINT);
-        gridChip(grid_, 1, "Highest", "--", UI_FAINT);
+        gridChip(grid_, 0, "Low", "--", UI_FAINT);
+        gridChip(grid_, 1, "High", "--", UI_FAINT);
         gridChip(grid_, 2, "Average", "--", UI_FAINT);
         gridChip(grid_, 3, "Unit", "--", UI_FAINT);
         gridEmpty(grid_);
@@ -35,10 +35,10 @@ void resistUpdate(const BmsSnapshot &d) {
     gridUpdate(grid_, n, mohm, spread ? lo : -1, spread ? hi : -1, 0);
 
     char cap[24], val[24];
-    snprintf(cap, sizeof(cap), "Lowest  #%d", lo + 1);
+    snprintf(cap, sizeof(cap), "Low  #%d", lo + 1);
     snprintf(val, sizeof(val), "%.0f", n ? mohm[lo] : 0.0f);
     gridChip(grid_, 0, cap, val, spread ? UI_COOL : UI_TEXT);
-    snprintf(cap, sizeof(cap), "Highest  #%d", hi + 1);
+    snprintf(cap, sizeof(cap), "High  #%d", hi + 1);
     snprintf(val, sizeof(val), "%.0f", n ? mohm[hi] : 0.0f);
     gridChip(grid_, 1, cap, val, spread ? UI_BAD : UI_TEXT);
     snprintf(val, sizeof(val), "%.1f", n ? total / n : 0.0f);

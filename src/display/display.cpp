@@ -66,6 +66,8 @@ static void printArea(const lv_area_t *area, const uint8_t *pixels) {
 
 void displayScreenshot(const char *name) {
     LvglLock lock;
+    // other tasks' log lines would land between the pixel rows
+    esp_log_level_set("*", ESP_LOG_NONE);
     printf("SHOT %s %d %d\n", name, LCD_H_RES, LCD_V_RES);
     shotActive_ = true;
     lv_obj_invalidate(lv_screen_active());
@@ -79,6 +81,7 @@ static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels) {
         if(lv_display_flush_is_last(disp)) {
             printf("END\n");
             shotActive_ = false;
+            esp_log_level_set("*", ESP_LOG_INFO);
         }
     }
     // the ILI9341 takes RGB565 big-endian
