@@ -11,3 +11,6 @@ logs/
 sdkconfig.*
 !sdkconfig.defaults*
 managed_components/
+
+# Screenshot output (tools/shots.py)
+shots/
