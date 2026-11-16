@@ -11,6 +11,7 @@ The `shot [name]` console command prints the next frame as
 """
 
 import base64
+import re
 import sys
 from pathlib import Path
 
@@ -22,7 +23,8 @@ def main(log: Path, out: Path) -> None:
     img = name = area = None
     filled = set()
     for line in log.read_text(encoding="utf-8", errors="replace").splitlines():
-        line = line.strip()
+        # PlatformIO's `time` monitor filter puts "12:34:56.789 > " in front
+        line = re.sub(r"^\d\d:\d\d:\d\d\.\d+ > ", "", line.strip())
         parts = line.split()
         if line.startswith("SHOT ") and len(parts) == 4:
             name = parts[1]
