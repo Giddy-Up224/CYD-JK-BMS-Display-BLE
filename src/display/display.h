@@ -13,6 +13,8 @@ esp_err_t displayInit();
 
 // Prints the next frame over serial (tools/shots.py turns it into a PNG)
 void displayScreenshot(const char *name);
+// Presses the screen at x, y for ms, as if touched (console `tap`)
+void displayTap(int x, int y, int ms);
 
 void lvglLock();
 void lvglUnlock();

@@ -66,6 +66,12 @@ void infoUpdate(const BmsSnapshot &d);
 lv_obj_t *pickerBuild();
 void pickerShow();  // starts the BLE scan
 
+// Settings screen (ui_settings.cpp)
+lv_obj_t *settingsBuild();
+void settingsShow();     // resets it before it's loaded
+void settingsRefresh();  // its update, right away
+
 // Navigation inside the LVGL task (lock held)
 void uiShowPickerLocked();
 void uiShowMainLocked();
+void uiShowSettingsLocked();

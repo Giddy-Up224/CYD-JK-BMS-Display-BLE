@@ -62,17 +62,30 @@ static void printArea(const lv_area_t *area, const uint8_t *pixels) {
         out[n] = 0;
         // row number first: a line lost on the way can't shift the rows after it
         printf("R%d %s\n", (int)area->y1 + y, out);
+        // a frame takes ~18 s at 115200 baud: let the idle task run, or the
+        // task watchdog prints a backtrace in the middle of the rows
+        if(y % 8 == 7) vTaskDelay(1);
     }
 }
 
+// The frame is printed twice: now and then a row loses characters on the
+// serial link, and tools/shots.py takes each row from a copy that arrived whole
+static const int SHOT_PASSES = 2;
+
 void displayScreenshot(const char *name) {
-    LvglLock lock;
-    // other tasks' log lines would land between the pixel rows
-    esp_log_level_set("*", ESP_LOG_NONE);
-    printf("SHOT %s %d %d\n", name, LCD_H_RES, LCD_V_RES);
-    shotActive_ = true;
-    lv_obj_invalidate(lv_screen_active());
-    lv_obj_invalidate(lv_layer_top());
+    for(int pass = 0; pass < SHOT_PASSES; pass++) {
+        {
+            LvglLock lock;
+            // other tasks' log lines would land between the pixel rows
+            esp_log_level_set("*", ESP_LOG_NONE);
+            printf("SHOT %s %d %d\n", name, LCD_H_RES, LCD_V_RES);
+            shotActive_ = true;
+            lv_obj_invalidate(lv_screen_active());
+            lv_obj_invalidate(lv_layer_top());
+        }
+        // the LVGL task prints the frame on its next refresh
+        for(int i = 0; i < 2000 && shotActive_; i++) vTaskDelay(pdMS_TO_TICKS(20));
+    }
 }
 
 static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels) {
@@ -90,9 +103,23 @@ static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels) {
     esp_lcd_panel_draw_bitmap(panel_, area->x1, area->y1, area->x2 + 1, area->y2 + 1, pixels);
 }
 
+// A press from the console (displayTap), read instead of the panel
+static volatile int64_t tapUntilUs_ = 0;
+static volatile int16_t tapX_, tapY_;
+
+void displayTap(int x, int y, int ms) {
+    tapX_ = static_cast<int16_t>(x);
+    tapY_ = static_cast<int16_t>(y);
+    tapUntilUs_ = esp_timer_get_time() + ms * 1000LL;
+}
+
 static void readTouch(lv_indev_t *, lv_indev_data_t *data) {
     int16_t x, y;
-    if(touchRead(x, y)) {
+    if(esp_timer_get_time() < tapUntilUs_) {
+        data->point.x = tapX_;
+        data->point.y = tapY_;
+        data->state = LV_INDEV_STATE_PRESSED;
+    } else if(touchRead(x, y)) {
         data->point.x = x;
         data->point.y = y;
         data->state = LV_INDEV_STATE_PRESSED;

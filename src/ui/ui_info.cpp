@@ -1,6 +1,6 @@
 // Device page: what is connected (model, versions, protocol) with a button to
-// pick another device, the balancing settings, and status figures (uptime;
-// temperatures and cycles on a BMS).
+// pick another device, the balancing settings (tap: Settings screen), and
+// status figures (uptime; temperatures and cycles on a BMS).
 
 #include <stdio.h>
 #include <string.h>
@@ -18,7 +18,7 @@ struct KvList {
 static lv_obj_t *model_, *versions_, *serial_;
 static KvList settings_, status_;
 
-static void kvBuild(KvList &kv, lv_obj_t *page, int x, const char *caption) {
+static lv_obj_t *kvBuild(KvList &kv, lv_obj_t *page, int x, const char *caption) {
     int y = UI_PAD + TOP_H + UI_GAP;
     lv_obj_t *card = uiCard(page, x, y, COL_W, UI_CONTENT_H - TOP_H - UI_GAP);
     uiCaption(card, caption);
@@ -30,6 +30,7 @@ static void kvBuild(KvList &kv, lv_obj_t *page, int x, const char *caption) {
         lv_obj_set_style_text_align(kv.value[i], LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_set_pos(kv.value[i], 60, 24 + i * ROW_H);
     }
+    return card;
 }
 
 static void kvSet(KvList &kv, int i, const char *key, const char *value) {
@@ -60,7 +61,14 @@ void infoBuild(lv_obj_t *page) {
     lv_label_set_text(l, LV_SYMBOL_BLUETOOTH " Change");
     lv_obj_center(l);
 
-    kvBuild(settings_, page, UI_PAD, "Balancing");
+    // Balancing card: tap to change the settings (and the name)
+    lv_obj_t *bal = kvBuild(settings_, page, UI_PAD, "Balancing");
+    lv_obj_add_flag(bal, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_color(bal, UI_CARD_HI, LV_STATE_PRESSED);
+    lv_obj_add_event_cb(bal, [](lv_event_t *) { uiShowSettingsLocked(); }, LV_EVENT_CLICKED, nullptr);
+    lv_obj_t *edit = uiLabel(bal, &lv_font_montserrat_12, UI_ACCENT);
+    lv_label_set_text(edit, LV_SYMBOL_EDIT " Edit");
+    lv_obj_align(edit, LV_ALIGN_TOP_RIGHT, -10, 6);
     kvBuild(status_, page, UI_PAD + COL_W + UI_GAP, "Status");
 }
 

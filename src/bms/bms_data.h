@@ -20,7 +20,9 @@ struct BmsSnapshot {
     uint32_t seq;       // +1 on every change
     JkProto proto;
     JkInfo info;
+    int64_t infoUs;     // esp_timer time of the last info frame
     JkSettings settings;
+    int64_t settingsUs; // ... and settings frame
     bool hasCells;      // cells is valid (since the last connect)
     int64_t cellsUs;    // esp_timer time of the last cell frame
     uint32_t cellFrames;

@@ -6,6 +6,7 @@
 void uiStart();
 void uiShowPicker();  // starts the BLE scan
 void uiShowMain();
+void uiShowSettings();  // name and balancing settings of the connected device
 void uiGoToPage(int page);
 // Prints the current screen over serial (tools/shots.py)
 void uiScreenshot(const char *name);

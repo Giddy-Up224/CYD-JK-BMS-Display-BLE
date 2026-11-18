@@ -11,7 +11,7 @@ static const int DOT_ACTIVE_W = 16;
 static const int DOT_GAP = 6;
 static const char *const TITLES[UI_PAGE_COUNT] = {"Overview", "Cells", "Wire resistance", "Device"};
 
-static lv_obj_t *main_, *picker_, *tiles_;
+static lv_obj_t *main_, *picker_, *settings_, *tiles_;
 static lv_obj_t *statusDot_, *statusName_, *pageTitle_;
 static lv_obj_t *dots_[UI_PAGE_COUNT];
 static int page_ = 0;
@@ -188,9 +188,20 @@ void uiShowPickerLocked() {
     if(lv_screen_active() != picker_) lv_screen_load_anim(picker_, LV_SCR_LOAD_ANIM_FADE_IN, 150, 0, false);
 }
 
+void uiShowSettingsLocked() {
+    settingsShow();
+    settingsRefresh();
+    if(lv_screen_active() != settings_) lv_screen_load_anim(settings_, LV_SCR_LOAD_ANIM_FADE_IN, 150, 0, false);
+}
+
 void uiShowMain() {
     LvglLock lock;
     uiShowMainLocked();
+}
+
+void uiShowSettings() {
+    LvglLock lock;
+    uiShowSettingsLocked();
 }
 
 void uiShowPicker() {
@@ -214,6 +225,7 @@ void uiStart() {
     LvglLock lock;
     buildMain();
     picker_ = pickerBuild();
+    settings_ = settingsBuild();
     BmsSnapshot d;
     bmsDataGet(d);
     if(d.addr[0]) {

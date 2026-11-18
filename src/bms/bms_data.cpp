@@ -43,12 +43,14 @@ void bmsDataSetProto(JkProto proto) {
 void bmsDataSetInfo(const JkInfo &info) {
     Lock l;
     data_.info = info;
+    data_.infoUs = esp_timer_get_time();
     data_.seq++;
 }
 
 void bmsDataSetSettings(const JkSettings &settings) {
     Lock l;
     data_.settings = settings;
+    data_.settingsUs = esp_timer_get_time();
     data_.seq++;
 }
 

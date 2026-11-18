@@ -7,6 +7,7 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 #include "host/ble_hs.h"
 #include "host/util/util.h"
@@ -373,20 +374,45 @@ static bool sendCommand(uint8_t cmd) {
     return rc == 0;
 }
 
-static bool sendWrite(const uint8_t *req, size_t n, const char *what, uint8_t refresh = JK_CMD_CELL_INFO) {
-    uint16_t conn = conn_;
-    if(conn == BLE_HS_CONN_HANDLE_NONE) return false;
-    char hex[20 * 3 + 1];
-    for(size_t i = 0; i < n; i++) snprintf(hex + i * 3, 4, "%02X ", req[i]);
-    ESP_LOGI(TAG, "Write %s: %s", what, hex);
-    int rc = ble_gattc_write_no_rsp_flat(conn, chrHandle_, req, n);
-    if(rc) {
-        ESP_LOGW(TAG, "Write failed (%d)", rc);
-        return false;
+// Writes go through a queue to their own task: each is followed by a request
+// that makes the device send the changed frame, 300 ms later, and the caller
+// (often the UI) shouldn't wait for that.
+struct WriteJob {
+    uint8_t req[20];
+    uint8_t refresh;  // command sent afterwards
+    char what[32];
+};
+static QueueHandle_t writeQ_;
+
+static void writerTask(void *) {
+    WriteJob job;
+    for(;;) {
+        if(xQueueReceive(writeQ_, &job, portMAX_DELAY) != pdTRUE) continue;
+        uint16_t conn = conn_;
+        if(conn == BLE_HS_CONN_HANDLE_NONE) {
+            ESP_LOGW(TAG, "Write %s dropped: not connected", job.what);
+            continue;
+        }
+        char hex[20 * 3 + 1];
+        for(size_t i = 0; i < sizeof(job.req); i++) snprintf(hex + i * 3, 4, "%02X ", job.req[i]);
+        ESP_LOGI(TAG, "Write %s: %s", job.what, hex);
+        int rc = ble_gattc_write_no_rsp_flat(conn, chrHandle_, job.req, sizeof(job.req));
+        if(rc) {
+            ESP_LOGW(TAG, "Write failed (%d)", rc);
+            continue;
+        }
+        vTaskDelay(pdMS_TO_TICKS(300));
+        sendCommand(job.refresh);
     }
-    vTaskDelay(pdMS_TO_TICKS(300));
-    sendCommand(refresh);
-    return true;
+}
+
+static bool sendWrite(const uint8_t *req, size_t n, const char *what, uint8_t refresh = JK_CMD_CELL_INFO) {
+    if(conn_ == BLE_HS_CONN_HANDLE_NONE || n != 20 || !writeQ_) return false;
+    WriteJob job;
+    memcpy(job.req, req, sizeof(job.req));
+    job.refresh = refresh;
+    strlcpy(job.what, what, sizeof(job.what));
+    return xQueueSend(writeQ_, &job, 0) == pdTRUE;
 }
 
 bool bleRename(const char *name) {
@@ -578,6 +604,8 @@ void bleStart() {
     ble_hs_cfg.reset_cb = onReset;
     nimble_port_freertos_init(hostTask);
     xTaskCreate(linkTask, "jk_link", 6144, nullptr, 4, nullptr);
+    writeQ_ = xQueueCreate(4, sizeof(WriteJob));
+    xTaskCreate(writerTask, "jk_write", 3072, nullptr, 4, nullptr);
 }
 
 void blePickStart() {

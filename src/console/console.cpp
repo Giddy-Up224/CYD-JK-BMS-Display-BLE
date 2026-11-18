@@ -9,6 +9,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "display/display.h"
 #include "ui/ui.h"
 
 static const char *TAG = "Console";
@@ -208,12 +209,21 @@ static void run(char *line) {
         } else {
             printf("rename <name>: 1..%d printable ASCII characters, while connected\n", JK_NAME_MAX);
         }
+    } else if(!strcmp(line, "tap")) {
+        int x = 0, y = 0, ms = 100;
+        if(sscanf(arg, "%d %d %d", &x, &y, &ms) >= 2) {
+            displayTap(x, y, ms);
+        } else {
+            printf("tap <x> <y> [ms]: presses the screen (hold with ms >= 400 for a long press)\n");
+        }
+    } else if(!strcmp(line, "settings")) {
+        uiShowSettings();
     } else if(!strcmp(line, "wreg")) {
         wregCmd(arg);
     } else if(!strcmp(line, "page")) {
         uiGoToPage(atoi(arg));
     } else {
-        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | rename <name> | wreg <reg> <len> <value> | page <n> | shot [name]\n");
+        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | rename <name> | wreg <reg> <len> <value> | page <n> | settings | tap <x> <y> [ms] | shot [name]\n");
     }
 }
 

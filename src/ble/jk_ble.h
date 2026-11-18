@@ -37,8 +37,9 @@ void bleForget();
 
 // Writes a setting to the connected device, then asks for the cell info
 // stream again, which makes the device send its settings frame (the new
-// value shows there). Returns false if not connected, the layout doesn't have
-// the setting, or the value is out of range.
+// value shows there, see BmsSnapshot::settingsUs). Doesn't wait: returns
+// false if not connected, the layout doesn't have the setting, or the value
+// is out of range. A device ignores values it doesn't accept, so read back.
 bool bleWriteSetting(JkSetting s, float value);
 // Renames the connected device (up to JK_NAME_MAX printable ASCII
 // characters), then asks for the device info again, which carries the name
