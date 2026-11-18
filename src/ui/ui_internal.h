@@ -52,7 +52,7 @@ bool uiFresh(const BmsSnapshot &d);
 bool uiIsBalancer(const BmsSnapshot &d);
 
 // Pages of the main screen
-enum { UI_PAGE_HOME, UI_PAGE_CELLS, UI_PAGE_RESIST, UI_PAGE_INFO, UI_PAGE_COUNT };
+enum { UI_PAGE_HOME, UI_PAGE_INFO, UI_PAGE_CELLS, UI_PAGE_RESIST, UI_PAGE_COUNT };
 void homeBuild(lv_obj_t *page);
 void homeUpdate(const BmsSnapshot &d);
 void cellsBuild(lv_obj_t *page);
@@ -66,6 +66,12 @@ void infoUpdate(const BmsSnapshot &d);
 lv_obj_t *pickerBuild();
 void pickerShow();  // starts the BLE scan
 
+// Settings screen (ui_settings.cpp)
+lv_obj_t *settingsBuild();
+void settingsShow();     // resets it before it's loaded
+void settingsRefresh();  // its update, right away
+
 // Navigation inside the LVGL task (lock held)
 void uiShowPickerLocked();
 void uiShowMainLocked();
+void uiShowSettingsLocked();

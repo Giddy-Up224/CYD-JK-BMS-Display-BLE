@@ -10,6 +10,7 @@
 // phone app is connected to it.
 
 #include <stdint.h>
+#include "jk/jk_proto.h"
 
 struct ScanEntry {
     uint8_t addrType;
@@ -33,6 +34,18 @@ void blePickCancel();
 
 // Forgets the saved device and disconnects
 void bleForget();
+
+// Writes a setting to the connected device, then asks for the cell info
+// stream again, which makes the device send its settings frame (the new
+// value shows there, see BmsSnapshot::settingsUs). Doesn't wait: returns
+// false if not connected, the layout doesn't have the setting, or the value
+// is out of range. A device ignores values it doesn't accept, so read back.
+bool bleWriteSetting(JkSetting s, float value);
+// Renames the connected device (up to JK_NAME_MAX printable ASCII
+// characters), then asks for the device info again, which carries the name
+bool bleRename(const char *name);
+// Writes any register, then asks for the stream (and settings) again
+bool bleWriteRaw(uint8_t reg, uint8_t len, uint32_t value);
 
 // "C8:47:80:23:4F:95" from NimBLE's byte order
 void bleAddrStr(const uint8_t addr[6], char out[18]);

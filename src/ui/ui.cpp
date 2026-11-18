@@ -9,9 +9,9 @@
 static const int DOT = 6;
 static const int DOT_ACTIVE_W = 16;
 static const int DOT_GAP = 6;
-static const char *const TITLES[UI_PAGE_COUNT] = {"Overview", "Cells", "Wire resistance", "Device"};
+static const char *const TITLES[UI_PAGE_COUNT] = {"Overview", "Device", "Cells", "Wire resistance"};
 
-static lv_obj_t *main_, *picker_, *tiles_;
+static lv_obj_t *main_, *picker_, *settings_, *tiles_;
 static lv_obj_t *statusDot_, *statusName_, *pageTitle_;
 static lv_obj_t *dots_[UI_PAGE_COUNT];
 static int page_ = 0;
@@ -77,6 +77,10 @@ bool uiFresh(const BmsSnapshot &d) {
 
 bool uiIsBalancer(const BmsSnapshot &d) {
     if(d.proto == JkProto::JK04) return true;
+    // JK02 balancers send BMS fields too (SOC 0, a nominal capacity): the
+    // model name tells them apart
+    int byModel = d.info.valid ? jkIsBalancerModel(d.info.model) : -1;
+    if(byModel >= 0) return byModel == 1;
     return d.hasCells && (!d.cells.hasBms || d.cells.nominalAh <= 0);
 }
 
@@ -159,9 +163,9 @@ static void buildMain() {
     lv_obj_set_style_bg_opa(tiles_, LV_OPA_TRANSP, 0);
     lv_obj_set_scrollbar_mode(tiles_, LV_SCROLLBAR_MODE_OFF);
     homeBuild(lv_tileview_add_tile(tiles_, UI_PAGE_HOME, 0, LV_DIR_RIGHT));
+    infoBuild(lv_tileview_add_tile(tiles_, UI_PAGE_INFO, 0, LV_DIR_HOR));
     cellsBuild(lv_tileview_add_tile(tiles_, UI_PAGE_CELLS, 0, LV_DIR_HOR));
-    resistBuild(lv_tileview_add_tile(tiles_, UI_PAGE_RESIST, 0, LV_DIR_HOR));
-    infoBuild(lv_tileview_add_tile(tiles_, UI_PAGE_INFO, 0, LV_DIR_LEFT));
+    resistBuild(lv_tileview_add_tile(tiles_, UI_PAGE_RESIST, 0, LV_DIR_LEFT));
     lv_obj_add_event_cb(tiles_, onTileChanged, LV_EVENT_VALUE_CHANGED, nullptr);
 
     for(int i = 0; i < UI_PAGE_COUNT; i++) dots_[i] = uiBox(main_, 0, 0, DOT, DOT, UI_FAINT, LV_RADIUS_CIRCLE);
@@ -184,9 +188,20 @@ void uiShowPickerLocked() {
     if(lv_screen_active() != picker_) lv_screen_load_anim(picker_, LV_SCR_LOAD_ANIM_FADE_IN, 150, 0, false);
 }
 
+void uiShowSettingsLocked() {
+    settingsShow();
+    settingsRefresh();
+    if(lv_screen_active() != settings_) lv_screen_load_anim(settings_, LV_SCR_LOAD_ANIM_FADE_IN, 150, 0, false);
+}
+
 void uiShowMain() {
     LvglLock lock;
     uiShowMainLocked();
+}
+
+void uiShowSettings() {
+    LvglLock lock;
+    uiShowSettingsLocked();
 }
 
 void uiShowPicker() {
@@ -210,6 +225,7 @@ void uiStart() {
     LvglLock lock;
     buildMain();
     picker_ = pickerBuild();
+    settings_ = settingsBuild();
     BmsSnapshot d;
     bmsDataGet(d);
     if(d.addr[0]) {

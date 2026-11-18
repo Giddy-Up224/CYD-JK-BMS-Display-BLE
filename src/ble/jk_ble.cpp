@@ -7,6 +7,7 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 #include "host/ble_hs.h"
 #include "host/util/util.h"
@@ -242,6 +243,26 @@ static void logCells(const JkCells &c) {
     }
 }
 
+static void publishTarget(const SavedDevice &d);
+
+// The device's own name (set in the JK app or by bleRename) replaces the one
+// saved from the scan, so the status bar and picker show the current name
+static void followName(const char *name) {
+    if(!name[0]) return;
+    portENTER_CRITICAL(&mux_);
+    bool changed = haveTarget_ && strncmp(target_.name, name, sizeof(target_.name) - 1) != 0;
+    SavedDevice d = target_;
+    portEXIT_CRITICAL(&mux_);
+    if(!changed) return;
+    strlcpy(d.name, name, sizeof(d.name));
+    portENTER_CRITICAL(&mux_);
+    target_ = d;
+    portEXIT_CRITICAL(&mux_);
+    prefsSetDevice(d);
+    publishTarget(d);
+    ESP_LOGI(TAG, "Saved name now %s", d.name);
+}
+
 static void onFrame(const uint8_t *f) {
     uint8_t type = f[4];
     bmsDataPutRaw(type, f);
@@ -252,6 +273,7 @@ static void onFrame(const uint8_t *f) {
         hwMajor_ = info.hwMajor;
         ESP_LOGI(TAG, "Model %s  hw %s  sw %s  serial %s  name %s", info.model, info.hw, info.sw, info.serial, info.name);
         bmsDataSetInfo(info);
+        followName(info.name);
         break;
     }
     case JK_FRAME_SETTINGS:
@@ -350,6 +372,71 @@ static bool sendCommand(uint8_t cmd) {
     int rc = ble_gattc_write_no_rsp_flat(conn, chrHandle_, req, n);
     if(rc) ESP_LOGW(TAG, "Write of command 0x%02X failed (%d)", cmd, rc);
     return rc == 0;
+}
+
+// Writes go through a queue to their own task: each is followed by a request
+// that makes the device send the changed frame, 300 ms later, and the caller
+// (often the UI) shouldn't wait for that.
+struct WriteJob {
+    uint8_t req[20];
+    uint8_t refresh;  // command sent afterwards
+    char what[32];
+};
+static QueueHandle_t writeQ_;
+
+static void writerTask(void *) {
+    WriteJob job;
+    for(;;) {
+        if(xQueueReceive(writeQ_, &job, portMAX_DELAY) != pdTRUE) continue;
+        uint16_t conn = conn_;
+        if(conn == BLE_HS_CONN_HANDLE_NONE) {
+            ESP_LOGW(TAG, "Write %s dropped: not connected", job.what);
+            continue;
+        }
+        char hex[20 * 3 + 1];
+        for(size_t i = 0; i < sizeof(job.req); i++) snprintf(hex + i * 3, 4, "%02X ", job.req[i]);
+        ESP_LOGI(TAG, "Write %s: %s", job.what, hex);
+        int rc = ble_gattc_write_no_rsp_flat(conn, chrHandle_, job.req, sizeof(job.req));
+        if(rc) {
+            ESP_LOGW(TAG, "Write failed (%d)", rc);
+            continue;
+        }
+        vTaskDelay(pdMS_TO_TICKS(300));
+        sendCommand(job.refresh);
+    }
+}
+
+static bool sendWrite(const uint8_t *req, size_t n, const char *what, uint8_t refresh = JK_CMD_CELL_INFO) {
+    if(conn_ == BLE_HS_CONN_HANDLE_NONE || n != 20 || !writeQ_) return false;
+    WriteJob job;
+    memcpy(job.req, req, sizeof(job.req));
+    job.refresh = refresh;
+    strlcpy(job.what, what, sizeof(job.what));
+    return xQueueSend(writeQ_, &job, 0) == pdTRUE;
+}
+
+bool bleRename(const char *name) {
+    uint8_t req[20];
+    size_t n = jkBuildRename(name, req);
+    if(n == 0) return false;
+    return sendWrite(req, n, "rename", JK_CMD_DEVICE_INFO);
+}
+
+bool bleWriteSetting(JkSetting s, float value) {
+    JkProto proto = proto_;
+    if(proto == JkProto::Unknown) return false;
+    uint8_t req[20];
+    size_t n = jkBuildWrite(proto, s, value, req);
+    if(n == 0) return false;
+    char what[32];
+    snprintf(what, sizeof(what), "%s = %g", jkSettingInfo(s).key, value);
+    return sendWrite(req, n, what);
+}
+
+bool bleWriteRaw(uint8_t reg, uint8_t len, uint32_t value) {
+    uint8_t req[20];
+    size_t n = jkBuildRaw(reg, len, value, req);
+    return sendWrite(req, n, "raw");
 }
 
 // Waits up to ms, returning early when the mode or target changes
@@ -517,6 +604,8 @@ void bleStart() {
     ble_hs_cfg.reset_cb = onReset;
     nimble_port_freertos_init(hostTask);
     xTaskCreate(linkTask, "jk_link", 6144, nullptr, 4, nullptr);
+    writeQ_ = xQueueCreate(4, sizeof(WriteJob));
+    xTaskCreate(writerTask, "jk_write", 3072, nullptr, 4, nullptr);
 }
 
 void blePickStart() {

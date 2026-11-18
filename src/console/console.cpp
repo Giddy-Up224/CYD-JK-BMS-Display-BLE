@@ -9,6 +9,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "display/display.h"
 #include "ui/ui.h"
 
 static const char *TAG = "Console";
@@ -126,6 +127,51 @@ static void dump() {
     printf("=== END DUMP ===\n");
 }
 
+// set <key> <value>, or just set: lists the settings
+static void setCmd(char *arg) {
+    BmsSnapshot d;
+    bmsDataGet(d);
+    char *val = strchr(arg, ' ');
+    if(val) *val++ = '\0';
+    JkSetting s = jkSettingByKey(arg);
+    if(s == JkSetting::Count || !val) {
+        printf("set <key> <value>  (%s)\n", jkProtoName(d.proto));
+        for(int i = 0; i < static_cast<int>(JkSetting::Count); i++) {
+            JkSetting k = static_cast<JkSetting>(i);
+            if(!jkSettingSupported(d.proto, k)) continue;
+            const JkSettingInfo &in = jkSettingInfo(k);
+            printf("  %-10s %-22s now %g %s  (%g..%g)\n", in.key, in.label,
+                   d.settings.valid ? jkSettingValue(d.settings, k) : 0.0f, in.unit, in.min, in.max);
+        }
+        return;
+    }
+    float v = strtof(val, nullptr);
+    if(!strcmp(val, "on")) v = 1;
+    if(!strcmp(val, "off")) v = 0;
+    printf(bleWriteSetting(s, v) ? "Sent\n" : "Not sent (not connected, not on this device, or out of range)\n");
+}
+
+// wreg <reg hex> <len> <value>: value with a '.' is sent as a float
+static void wregCmd(char *arg) {
+    char *len = strchr(arg, ' ');
+    char *val = len ? strchr(len + 1, ' ') : nullptr;
+    if(!len || !val) {
+        printf("wreg <reg hex> <len> <value>   e.g. wreg 64 4 0.05 (float), wreg 6c 1 1\n");
+        return;
+    }
+    *len++ = '\0';
+    *val++ = '\0';
+    uint32_t v;
+    if(strchr(val, '.')) {
+        float f = strtof(val, nullptr);
+        memcpy(&v, &f, sizeof(v));
+    } else {
+        v = static_cast<uint32_t>(strtol(val, nullptr, 0));
+    }
+    bool ok = bleWriteRaw(static_cast<uint8_t>(strtol(arg, nullptr, 16)), static_cast<uint8_t>(atoi(len)), v);
+    printf(ok ? "Sent\n" : "Not connected\n");
+}
+
 static void run(char *line) {
     char *arg = strchr(line, ' ');
     if(arg) {
@@ -155,10 +201,36 @@ static void run(char *line) {
         dump();
     } else if(!strcmp(line, "shot")) {
         uiScreenshot(*arg ? arg : "screen");
+    } else if(!strcmp(line, "set")) {
+        setCmd(arg);
+    } else if(!strcmp(line, "rename")) {
+        if(bleRename(arg)) {
+            printf("Sent\n");
+        } else {
+            printf("rename <name>: 1..%d printable ASCII characters, while connected\n", JK_NAME_MAX);
+        }
+    } else if(!strcmp(line, "tap")) {
+        int x = 0, y = 0, ms = 100;
+        if(sscanf(arg, "%d %d %d", &x, &y, &ms) >= 2) {
+            displayTap(x, y, ms);
+        } else {
+            printf("tap <x> <y> [ms]: presses the screen (hold with ms >= 400 for a long press)\n");
+        }
+    } else if(!strcmp(line, "swipe")) {
+        int x1, y1, x2, y2, ms = 300;
+        if(sscanf(arg, "%d %d %d %d %d", &x1, &y1, &x2, &y2, &ms) >= 4) {
+            displaySwipe(x1, y1, x2, y2, ms);
+        } else {
+            printf("swipe <x1> <y1> <x2> <y2> [ms]: drags across the screen\n");
+        }
+    } else if(!strcmp(line, "settings")) {
+        uiShowSettings();
+    } else if(!strcmp(line, "wreg")) {
+        wregCmd(arg);
     } else if(!strcmp(line, "page")) {
         uiGoToPage(atoi(arg));
     } else {
-        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | page <n> | shot [name]\n");
+        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | rename <name> | wreg <reg> <len> <value> | page <n> | settings | tap <x> <y> [ms] | swipe <x1> <y1> <x2> <y2> [ms] | shot [name]\n");
     }
 }
 
