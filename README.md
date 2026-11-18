@@ -15,10 +15,12 @@ Originally based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk
 | ![Overview](doc/screenshots/overview.png) | ![Device](doc/screenshots/device.png) |
 | **Cells** | **Wire resistance** |
 | ![Cells](doc/screenshots/cells.png) | ![Wire resistance](doc/screenshots/resistance.png) |
+| **Settings** | **Editing a setting** |
+| ![Settings](doc/screenshots/settings.png) | ![Editing a setting](doc/screenshots/editor.png) |
 | **Device picker** | |
 | ![Device picker](doc/screenshots/picker.png) | |
 
-*A JK-B1A16S balancer, 16 cells. Captured with the `shot` console command.*
+*A JK_B2A16S balancer, 16 cells. Captured with the `shot` console command.*
 
 ## Features
 
