@@ -1,4 +1,5 @@
 #include "jk_proto.h"
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -70,15 +71,126 @@ bool JkAssembler::feed(const uint8_t *data, size_t len) {
     return false;
 }
 
-size_t jkBuildCommand(uint8_t cmd, uint8_t out[20]) {
+static size_t request(uint8_t reg, uint8_t len, uint32_t value, uint8_t out[20]) {
     memset(out, 0, 20);
     out[0] = 0xAA;
     out[1] = 0x55;
     out[2] = 0x90;
     out[3] = 0xEB;
-    out[4] = cmd;
+    out[4] = reg;
+    out[5] = len;
+    for(int i = 0; i < 4; i++) out[6 + i] = static_cast<uint8_t>(value >> (8 * i));
     out[19] = sum(out, 19);
     return 20;
+}
+
+size_t jkBuildCommand(uint8_t cmd, uint8_t out[20]) {
+    return request(cmd, 0, 0, out);
+}
+
+size_t jkBuildRaw(uint8_t reg, uint8_t len, uint32_t value, uint8_t out[20]) {
+    return request(reg, len, value, out);
+}
+
+// --- Writing settings
+
+struct WriteReg {
+    uint8_t jk04, jk02_24, jk02_32;  // register per layout, 0: not there
+    uint8_t jk04Len;                 // JK04 value length; 4 (not a switch): float
+    float factor;                    // integers: value x factor
+};
+
+static const JkSettingInfo INFO[] = {
+    {"start", "Start voltage", "V", 1.0f, 4.25f, 0.01f, false},
+    {"trigger", "Trigger delta", "V", 0.003f, 1.0f, 0.001f, false},
+    {"maxbal", "Max balance current", "A", 0.3f, 15.0f, 0.1f, false},
+    {"poweroff", "Power off voltage", "V", 1.2f, 4.35f, 0.01f, false},
+    {"cells", "Cell count", "", 2, 32, 1, false},
+    {"balance", "Balancing", "", 0, 1, 1, true},
+    {"charge", "Charging", "", 0, 1, 1, true},
+    {"discharge", "Discharging", "", 0, 1, 1, true},
+    {"uvp", "Cell undervoltage", "V", 1.2f, 4.35f, 0.01f, false},
+    {"uvpr", "Undervoltage recovery", "V", 1.2f, 4.35f, 0.01f, false},
+    {"ovp", "Cell overvoltage", "V", 1.2f, 4.35f, 0.01f, false},
+    {"ovpr", "Overvoltage recovery", "V", 1.2f, 4.35f, 0.01f, false},
+};
+
+static const WriteReg REGS[] = {
+    {0x58, 0x26, 0x22, 4, 1000},  // start balance voltage
+    {0x64, 0x06, 0x06, 4, 1000},  // trigger delta
+    {0x68, 0x13, 0x13, 4, 1000},  // max balance current
+    {0x20, 0x0B, 0x0B, 4, 1000},  // power off voltage
+    {0x1C, 0x1C, 0x1C, 2, 1},     // cell count
+    {0x6C, 0x1F, 0x1F, 1, 1},     // balancing switch
+    {0x00, 0x1D, 0x1D, 0, 1},     // charging switch
+    {0x00, 0x1E, 0x1E, 0, 1},     // discharging switch
+    {0x00, 0x02, 0x02, 0, 1000},  // cell UVP
+    {0x00, 0x03, 0x03, 0, 1000},  // cell UVP recovery
+    {0x00, 0x04, 0x04, 0, 1000},  // cell OVP
+    {0x00, 0x05, 0x05, 0, 1000},  // cell OVP recovery
+};
+static_assert(sizeof(INFO) / sizeof(INFO[0]) == static_cast<size_t>(JkSetting::Count), "INFO");
+static_assert(sizeof(REGS) / sizeof(REGS[0]) == static_cast<size_t>(JkSetting::Count), "REGS");
+
+const JkSettingInfo &jkSettingInfo(JkSetting s) {
+    return INFO[static_cast<int>(s)];
+}
+
+JkSetting jkSettingByKey(const char *key) {
+    for(int i = 0; i < static_cast<int>(JkSetting::Count); i++) {
+        if(strcmp(INFO[i].key, key) == 0) return static_cast<JkSetting>(i);
+    }
+    return JkSetting::Count;
+}
+
+static uint8_t writeReg(JkProto proto, JkSetting s) {
+    if(s >= JkSetting::Count) return 0;
+    const WriteReg &r = REGS[static_cast<int>(s)];
+    switch(proto) {
+    case JkProto::JK04: return r.jk04;
+    case JkProto::JK02_24S: return r.jk02_24;
+    case JkProto::JK02_32S: return r.jk02_32;
+    default: return 0;
+    }
+}
+
+bool jkSettingSupported(JkProto proto, JkSetting s) {
+    return writeReg(proto, s) != 0;
+}
+
+size_t jkBuildWrite(JkProto proto, JkSetting s, float value, uint8_t out[20]) {
+    uint8_t r = writeReg(proto, s);
+    if(r == 0) return 0;
+    const JkSettingInfo &info = jkSettingInfo(s);
+    if(!(value >= info.min && value <= info.max)) return 0;  // also rejects NaN
+    const WriteReg &w = REGS[static_cast<int>(s)];
+    bool jk04 = proto == JkProto::JK04;
+    if(info.isSwitch) return request(r, jk04 ? 1 : 4, value >= 0.5f ? 1 : 0, out);
+    if(jk04 && w.jk04Len == 4) {
+        uint32_t bits;
+        memcpy(&bits, &value, sizeof(bits));
+        return request(r, 4, bits, out);
+    }
+    uint32_t v = static_cast<uint32_t>(static_cast<int32_t>(lroundf(value * w.factor)));
+    return request(r, jk04 ? w.jk04Len : 4, v, out);
+}
+
+float jkSettingValue(const JkSettings &st, JkSetting s) {
+    switch(s) {
+    case JkSetting::StartBalanceV: return st.startBalanceV;
+    case JkSetting::TriggerDeltaV: return st.triggerDeltaV;
+    case JkSetting::MaxBalanceA: return st.maxBalanceA;
+    case JkSetting::PowerOffV: return st.powerOffV;
+    case JkSetting::CellCount: return static_cast<float>(st.cellCount);
+    case JkSetting::Balancing: return st.balanceEnabled ? 1 : 0;
+    case JkSetting::Charging: return st.chargeEnabled ? 1 : 0;
+    case JkSetting::Discharging: return st.dischargeEnabled ? 1 : 0;
+    case JkSetting::CellUvpV: return st.cellUvpV;
+    case JkSetting::CellUvprV: return st.cellUvprV;
+    case JkSetting::CellOvpV: return st.cellOvpV;
+    case JkSetting::CellOvprV: return st.cellOvprV;
+    default: return 0;
+    }
 }
 
 // --- Device info (same in every layout)
@@ -144,6 +256,8 @@ static void settingsJK02(const uint8_t *b, JkSettings &s) {
     s.cellCount = cells <= JK_MAX_CELLS ? cells : 0;
     s.capacityAh = u32(b, 130) * 0.001f;
     s.startBalanceV = u32(b, 138) * 0.001f;
+    s.chargeEnabled = b[118] != 0;
+    s.dischargeEnabled = b[122] != 0;
     s.balanceEnabled = b[126] != 0;
 }
 

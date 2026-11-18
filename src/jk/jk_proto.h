@@ -60,6 +60,7 @@ struct JkSettings {
     float cellUvpV, cellUvprV, cellOvpV, cellOvprV;
     float maxChargeA, maxDischargeA;
     float capacityAh;
+    bool chargeEnabled, dischargeEnabled;
 };
 
 // Cell info frame (0x02)
@@ -100,6 +101,48 @@ private:
 
 // Request frame for cmd (JK_CMD_...); returns its length (20)
 size_t jkBuildCommand(uint8_t cmd, uint8_t out[20]);
+// Any register write (for decoding new devices)
+size_t jkBuildRaw(uint8_t reg, uint8_t len, uint32_t value, uint8_t out[20]);
+
+// --- Writing settings
+//
+// A write is a request frame with a register in byte 4, the value's length
+// in byte 5 and the value in bytes 6..9 (little-endian). JK02 takes integers
+// (mV, mA); JK04 takes floats for voltages and currents. The device doesn't
+// answer; the new value shows in the next settings frame. Register numbers
+// from syssi/esphome-jk-bms.
+enum class JkSetting : uint8_t {
+    StartBalanceV,   // balancing starts above this cell voltage
+    TriggerDeltaV,   // ... when the cells are this far apart
+    MaxBalanceA,
+    PowerOffV,
+    CellCount,
+    Balancing,       // switch: 0 / 1
+    // BMS only
+    Charging,        // switch
+    Discharging,     // switch
+    CellUvpV, CellUvprV, CellOvpV, CellOvprV,
+    Count
+};
+
+struct JkSettingInfo {
+    const char *key;     // console name, e.g. "trigger"
+    const char *label;   // e.g. "Trigger delta"
+    const char *unit;    // "V", "A", "" (count / switch)
+    float min, max, step;
+    bool isSwitch;
+};
+const JkSettingInfo &jkSettingInfo(JkSetting s);
+// The setting named key, or JkSetting::Count
+JkSetting jkSettingByKey(const char *key);
+// Does this layout have the setting?
+bool jkSettingSupported(JkProto proto, JkSetting s);
+// Write frame for the setting; returns its length (20), or 0 if the layout
+// doesn't have it or the value is out of range
+size_t jkBuildWrite(JkProto proto, JkSetting s, float value, uint8_t out[20]);
+
+// The setting's current value in a parsed settings frame
+float jkSettingValue(const JkSettings &st, JkSetting s);
 
 // Layout of a cell info frame. hwMajor from the info frame (0 if unknown).
 JkProto jkDetect(const uint8_t *frame, int hwMajor);

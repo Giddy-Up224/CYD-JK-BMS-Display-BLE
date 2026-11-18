@@ -352,6 +352,39 @@ static bool sendCommand(uint8_t cmd) {
     return rc == 0;
 }
 
+static bool sendWrite(const uint8_t *req, size_t n, const char *what) {
+    uint16_t conn = conn_;
+    if(conn == BLE_HS_CONN_HANDLE_NONE) return false;
+    char hex[20 * 3 + 1];
+    for(size_t i = 0; i < n; i++) snprintf(hex + i * 3, 4, "%02X ", req[i]);
+    ESP_LOGI(TAG, "Write %s: %s", what, hex);
+    int rc = ble_gattc_write_no_rsp_flat(conn, chrHandle_, req, n);
+    if(rc) {
+        ESP_LOGW(TAG, "Write failed (%d)", rc);
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(300));
+    sendCommand(JK_CMD_CELL_INFO);
+    return true;
+}
+
+bool bleWriteSetting(JkSetting s, float value) {
+    JkProto proto = proto_;
+    if(proto == JkProto::Unknown) return false;
+    uint8_t req[20];
+    size_t n = jkBuildWrite(proto, s, value, req);
+    if(n == 0) return false;
+    char what[32];
+    snprintf(what, sizeof(what), "%s = %g", jkSettingInfo(s).key, value);
+    return sendWrite(req, n, what);
+}
+
+bool bleWriteRaw(uint8_t reg, uint8_t len, uint32_t value) {
+    uint8_t req[20];
+    size_t n = jkBuildRaw(reg, len, value, req);
+    return sendWrite(req, n, "raw");
+}
+
 // Waits up to ms, returning early when the mode or target changes
 static void pause(int ms) {
     xEventGroupWaitBits(events_, WAKE, pdTRUE, pdFALSE, pdMS_TO_TICKS(ms));
