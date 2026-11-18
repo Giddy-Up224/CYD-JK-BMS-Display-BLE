@@ -122,7 +122,7 @@ void infoUpdate(const BmsSnapshot &d) {
     kvSet(status_, row++, "Uptime", buf);
     snprintf(buf, sizeof(buf), "%d", c.cellCount);
     kvSet(status_, row++, "Cells", buf);
-    if(c.hasBms) {
+    if(c.hasBms && !uiIsBalancer(d)) {
         snprintf(buf, sizeof(buf), "%.1f / %.1f C", c.t1C, c.t2C);
         kvSet(status_, row++, "Battery", buf);
         snprintf(buf, sizeof(buf), "%.1f C", c.mosC);
