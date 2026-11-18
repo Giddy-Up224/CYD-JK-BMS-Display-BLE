@@ -32,7 +32,10 @@ enum : uint8_t {
 enum : uint8_t {
     JK_CMD_CELL_INFO = 0x96,
     JK_CMD_DEVICE_INFO = 0x97,
+    JK_CMD_RENAME = 0x9B,
 };
+
+#define JK_NAME_MAX 13  // what fits in a request frame (bytes 6..18)
 
 // Device info frame (0x03)
 struct JkInfo {
@@ -101,6 +104,9 @@ private:
 
 // Request frame for cmd (JK_CMD_...); returns its length (20)
 size_t jkBuildCommand(uint8_t cmd, uint8_t out[20]);
+// Rename frame: 0x9B, the length in byte 5, the name from byte 6. Returns 0
+// if the name is empty, longer than JK_NAME_MAX or not printable ASCII.
+size_t jkBuildRename(const char *name, uint8_t out[20]);
 // Any register write (for decoding new devices)
 size_t jkBuildRaw(uint8_t reg, uint8_t len, uint32_t value, uint8_t out[20]);
 
@@ -148,5 +154,9 @@ float jkSettingValue(const JkSettings &st, JkSetting s);
 JkProto jkDetect(const uint8_t *frame, int hwMajor);
 
 void jkParseInfo(const uint8_t *frame, JkInfo &out);
+// From the model name: 1 balancer, 0 BMS, -1 can't tell. BMS models end in
+// their current rating ("JK-B1A8S10P", "JK_PB2A16S20P"), balancers in the
+// cell count ("JK-B1A16S", "JK_B2A16S").
+int jkIsBalancerModel(const char *model);
 void jkParseSettings(JkProto proto, const uint8_t *frame, JkSettings &out);
 void jkParseCells(JkProto proto, const uint8_t *frame, JkCells &out);

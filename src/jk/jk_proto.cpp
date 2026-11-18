@@ -88,6 +88,18 @@ size_t jkBuildCommand(uint8_t cmd, uint8_t out[20]) {
     return request(cmd, 0, 0, out);
 }
 
+size_t jkBuildRename(const char *name, uint8_t out[20]) {
+    size_t n = strlen(name);
+    if(n == 0 || n > JK_NAME_MAX) return 0;
+    for(size_t i = 0; i < n; i++) {
+        if(name[i] < 0x20 || name[i] > 0x7E) return 0;
+    }
+    request(JK_CMD_RENAME, static_cast<uint8_t>(n), 0, out);
+    memcpy(out + 6, name, n);
+    out[19] = sum(out, 19);
+    return 20;
+}
+
 size_t jkBuildRaw(uint8_t reg, uint8_t len, uint32_t value, uint8_t out[20]) {
     return request(reg, len, value, out);
 }
@@ -206,6 +218,17 @@ void jkParseInfo(const uint8_t *b, JkInfo &out) {
     str(b, 86, 11, out.serial);
     out.hwMajor = atoi(out.hw);
     out.valid = true;
+}
+
+int jkIsBalancerModel(const char *model) {
+    if(strncmp(model, "JK", 2) != 0) return -1;
+    size_t n = strlen(model);
+    while(n > 0 && model[n - 1] == ' ') n--;
+    if(n < 3) return -1;
+    char last = model[n - 1];
+    if(last == 'P' || last == 'p') return 0;
+    if((last == 'S' || last == 's') && model[n - 2] >= '0' && model[n - 2] <= '9') return 1;
+    return -1;
 }
 
 // --- Layout detection

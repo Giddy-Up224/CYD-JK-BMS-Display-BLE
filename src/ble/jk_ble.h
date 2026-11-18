@@ -40,6 +40,9 @@ void bleForget();
 // value shows there). Returns false if not connected, the layout doesn't have
 // the setting, or the value is out of range.
 bool bleWriteSetting(JkSetting s, float value);
+// Renames the connected device (up to JK_NAME_MAX printable ASCII
+// characters), then asks for the device info again, which carries the name
+bool bleRename(const char *name);
 // Writes any register, then asks for the stream (and settings) again
 bool bleWriteRaw(uint8_t reg, uint8_t len, uint32_t value);
 

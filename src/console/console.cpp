@@ -202,12 +202,18 @@ static void run(char *line) {
         uiScreenshot(*arg ? arg : "screen");
     } else if(!strcmp(line, "set")) {
         setCmd(arg);
+    } else if(!strcmp(line, "rename")) {
+        if(bleRename(arg)) {
+            printf("Sent\n");
+        } else {
+            printf("rename <name>: 1..%d printable ASCII characters, while connected\n", JK_NAME_MAX);
+        }
     } else if(!strcmp(line, "wreg")) {
         wregCmd(arg);
     } else if(!strcmp(line, "page")) {
         uiGoToPage(atoi(arg));
     } else {
-        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | wreg <reg> <len> <value> | page <n> | shot [name]\n");
+        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | rename <name> | wreg <reg> <len> <value> | page <n> | shot [name]\n");
     }
 }
 

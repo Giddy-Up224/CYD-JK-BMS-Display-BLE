@@ -77,6 +77,10 @@ bool uiFresh(const BmsSnapshot &d) {
 
 bool uiIsBalancer(const BmsSnapshot &d) {
     if(d.proto == JkProto::JK04) return true;
+    // JK02 balancers send BMS fields too (SOC 0, a nominal capacity): the
+    // model name tells them apart
+    int byModel = d.info.valid ? jkIsBalancerModel(d.info.model) : -1;
+    if(byModel >= 0) return byModel == 1;
     return d.hasCells && (!d.cells.hasBms || d.cells.nominalAh <= 0);
 }
 

@@ -163,12 +163,12 @@ From esphome-jk-bms, with our test results. `-`: not in that layout.
 
 | Setting | JK04 | JK02_24S | JK02_32S | Tested |
 |---|---|---|---|---|
-| Balancing start voltage | 0x58 (?) | 0x26 | 0x22 | JK04: no effect on JK-B1A16S, see quirks |
-| Balance trigger delta | 0x64 | 0x06 | 0x06 | JK04: works |
-| Max balance current | 0x68 | 0x13 | 0x13 | JK04: works up to the device's rating |
+| Balancing start voltage | 0x58 (?) | 0x26 | 0x22 | JK04: no effect on JK-B1A16S, see quirks. JK02_32S: works |
+| Balance trigger delta | 0x64 | 0x06 | 0x06 | JK04, JK02_32S: works |
+| Max balance current | 0x68 | 0x13 | 0x13 | JK04: works up to the device's rating. JK02_32S: works |
 | Power off voltage | 0x20 | 0x0B | 0x0B | not yet |
 | Cell count | 0x1C | 0x1C | 0x1C | not yet |
-| Balancing switch | 0x6C | 0x1F | 0x1F | JK04: works |
+| Balancing switch | 0x6C | 0x1F | 0x1F | JK04, JK02_32S: works |
 | Voltage calibration | 0x44 | 0x21 | 0x64 | not yet |
 | Charging switch | - | 0x1D | 0x1D | not yet |
 | Discharging switch | - | 0x1E | 0x1E | not yet |
@@ -206,9 +206,18 @@ AA 55 90 EB 9B 04 61 61 61 61 xx xx xx xx xx xx xx xx xx <crc>     "aaaa"
 - No reply. The new name shows in the next device info frame (`0x97`), offset 46.
 - The app disconnects by itself about a second after a rename (HCI reason 0x13, local user). The
   device doesn't drop the link and keeps the name.
+- Sending the same frame with zero filler from the CYD (`rename reveng`) works too
+  (JK_B2A16S, 2026-11-18): `AA 55 90 EB 9B 06 72 65 76 65 6E 67 00 00 00 00 00 00 00 A2`.
 - Bytes 6..18 leave room for 13 characters. The info frame field is 16 bytes. Longer names not
   tried yet.
 - The factory name is the serial number (`509300D0608`).
+
+## BMS or balancer?
+
+The layout alone doesn't say: a JK02_32S balancer (JK_B2A16S) sends the same cell frame as a BMS,
+with SOC, capacity and switch fields filled in. The model name in the info frame does: BMS models end
+in their current rating (`JK-B1A8S10P`, `JK_PB2A16S20P`), balancers in the cell count
+(`JK-B1A16S`, `JK_B2A16S`).
 
 ## Frame layouts
 
@@ -312,7 +321,7 @@ All u32, voltages in mV, currents in mA.
 | Model | hw | sw | Layout | Notes |
 |---|---|---|---|---|
 | JK-B1A16S | 8.X-W | 8.05 | JK04 | 1 A balancer, start voltage locked |
-| JK_B2A16S | 11U | 11.56 | JK02_32S | 2 A balancer, mfg date 261118, serial in the info frame |
+| JK_B2A16S | 11U | 11.56 | JK02_32S | 2 A balancer, mfg date 261118, serial in the info frame. Sends BMS fields too (SOC 0 %, 40 Ah nominal, charge/discharge off): tell it apart by the model name |
 | JK-B1A8S10P | 11.XW | | JK02_32S | BMS |
 
 ## Device quirks
@@ -335,6 +344,11 @@ All u32, voltages in mV, currents in mA.
 | 2026-11-18 | JK-B1A16S (JK04) | `set maxbal 1.5` | Ignored (stays 1.0) |
 | 2026-11-18 | JK-B1A16S (JK04) | `set maxbal 0.8`, then `1` | Changed and back |
 | 2026-11-18 | JK-B1A16S (JK04) | `set start 3.3` (reg 0x58) | Ignored; start voltage is locked on this unit (also in the app) |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | `rename reveng` | Renamed (was `zzzz`) |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | `set trigger 0.012`, then `0.01` | Changed and back |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | `set balance off`, then `on` | Changed and back |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | `set maxbal 1.5`, then `2` | Changed and back |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | `set start 2.1`, then `2` | Changed and back (reg 0x22) |
 
 ## Captures
 
@@ -350,7 +364,6 @@ JK frames in a capture, without Wireshark.
 - The start voltage register on a JK04 balancer that allows changing it: 0x58 (esphome) or 0x00
   (offset rule)?
 - What the unknown JK04 settings at offsets 74, 98 and 102 are.
-- Whether the JK02 registers work on the JK_B2A16S (layout JK02_32S, same as the BMS).
 - Names longer than 13 characters.
 
 ## Python sketch

@@ -242,6 +242,26 @@ static void logCells(const JkCells &c) {
     }
 }
 
+static void publishTarget(const SavedDevice &d);
+
+// The device's own name (set in the JK app or by bleRename) replaces the one
+// saved from the scan, so the status bar and picker show the current name
+static void followName(const char *name) {
+    if(!name[0]) return;
+    portENTER_CRITICAL(&mux_);
+    bool changed = haveTarget_ && strncmp(target_.name, name, sizeof(target_.name) - 1) != 0;
+    SavedDevice d = target_;
+    portEXIT_CRITICAL(&mux_);
+    if(!changed) return;
+    strlcpy(d.name, name, sizeof(d.name));
+    portENTER_CRITICAL(&mux_);
+    target_ = d;
+    portEXIT_CRITICAL(&mux_);
+    prefsSetDevice(d);
+    publishTarget(d);
+    ESP_LOGI(TAG, "Saved name now %s", d.name);
+}
+
 static void onFrame(const uint8_t *f) {
     uint8_t type = f[4];
     bmsDataPutRaw(type, f);
@@ -252,6 +272,7 @@ static void onFrame(const uint8_t *f) {
         hwMajor_ = info.hwMajor;
         ESP_LOGI(TAG, "Model %s  hw %s  sw %s  serial %s  name %s", info.model, info.hw, info.sw, info.serial, info.name);
         bmsDataSetInfo(info);
+        followName(info.name);
         break;
     }
     case JK_FRAME_SETTINGS:
@@ -352,7 +373,7 @@ static bool sendCommand(uint8_t cmd) {
     return rc == 0;
 }
 
-static bool sendWrite(const uint8_t *req, size_t n, const char *what) {
+static bool sendWrite(const uint8_t *req, size_t n, const char *what, uint8_t refresh = JK_CMD_CELL_INFO) {
     uint16_t conn = conn_;
     if(conn == BLE_HS_CONN_HANDLE_NONE) return false;
     char hex[20 * 3 + 1];
@@ -364,8 +385,15 @@ static bool sendWrite(const uint8_t *req, size_t n, const char *what) {
         return false;
     }
     vTaskDelay(pdMS_TO_TICKS(300));
-    sendCommand(JK_CMD_CELL_INFO);
+    sendCommand(refresh);
     return true;
+}
+
+bool bleRename(const char *name) {
+    uint8_t req[20];
+    size_t n = jkBuildRename(name, req);
+    if(n == 0) return false;
+    return sendWrite(req, n, "rename", JK_CMD_DEVICE_INFO);
 }
 
 bool bleWriteSetting(JkSetting s, float value) {
