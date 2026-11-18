@@ -119,6 +119,7 @@ Commands:
 |---|---|
 | `0x97` | Device info: the device answers with an info frame (0x03) |
 | `0x96` | Cell info: the device answers with its settings frame (0x01), then streams cell info frames (0x02) about once a second |
+| `0x9B` | Rename: see [Renaming](#renaming) |
 | `0xA1` | Logbook (listed by esphome-jk-bms; not tried) |
 
 Connect order that works: turn on notifications, send `0x97`, wait ~300 ms, send `0x96`.
@@ -191,8 +192,23 @@ offset 6 in the JK04 settings frame, which would make it register 0x00. Not trie
 
 ### Renaming
 
-Not known yet. The name is in the device info frame (offset 46, 16 bytes), and a 4-byte value field
-can't hold it, so renaming probably uses a different request. To be captured (see above).
+Captured from the JK app on a JK_B2A16S (2026-11-18). Command **`0x9B`**, `len` = name length, the
+name in ASCII from byte 6:
+
+```
+AA 55 90 EB 9B 06 52 65 76 65 6E 67 xx xx xx xx xx xx xx <crc>     "Reveng"
+AA 55 90 EB 9B 04 61 61 61 61 xx xx xx xx xx xx xx xx xx <crc>     "aaaa"
+```
+
+- `xx`: the JK app fills the unused bytes with random-looking values (it does the same in `0x96` and
+  `0x97`). The device ignores them; the checksum covers whatever is there. Zeros are fine (the CYD
+  sends zeros).
+- No reply. The new name shows in the next device info frame (`0x97`), offset 46.
+- The app disconnects by itself about a second after a rename (HCI reason 0x13, local user). The
+  device doesn't drop the link and keeps the name.
+- Bytes 6..18 leave room for 13 characters. The info frame field is 16 bytes. Longer names not
+  tried yet.
+- The factory name is the serial number (`509300D0608`).
 
 ## Frame layouts
 
@@ -214,7 +230,8 @@ average decide between 24 and 32 cells, with the hardware version as a tie-break
 | 22 | 8 | Hardware version, e.g. `8.X-W`, `11.XW` |
 | 30 | 8 | Software version, e.g. `8.05` |
 | 42 | 4 | Power-on count |
-| 46 | 16 | Device name (set in the app) |
+| 46 | 16 | Device name (set in the app, command `0x9B`) |
+| 62 | 16 | Looks like the app's device password, plain text (`1234`, JK's default) |
 | 78 | 8 | Manufacturing date |
 | 86 | 11 | Serial number (empty on the JK-B1A16S) |
 
@@ -290,6 +307,14 @@ All u32, voltages in mV, currents in mA.
 | 162 + 2o | u32 | Uptime (s) |
 | 166 / 167 / 169 + 2o | u8 | Charging / discharging / balancing on |
 
+## Devices seen
+
+| Model | hw | sw | Layout | Notes |
+|---|---|---|---|---|
+| JK-B1A16S | 8.X-W | 8.05 | JK04 | 1 A balancer, start voltage locked |
+| JK_B2A16S | 11U | 11.56 | JK02_32S | 2 A balancer, mfg date 261118, serial in the info frame |
+| JK-B1A8S10P | 11.XW | | JK02_32S | BMS |
+
 ## Device quirks
 
 - **JK-B1A16S (hw 8.X-W, sw 8.05, JK04):**
@@ -311,13 +336,22 @@ All u32, voltages in mV, currents in mA.
 | 2026-11-18 | JK-B1A16S (JK04) | `set maxbal 0.8`, then `1` | Changed and back |
 | 2026-11-18 | JK-B1A16S (JK04) | `set start 3.3` (reg 0x58) | Ignored; start voltage is locked on this unit (also in the app) |
 
+## Captures
+
+| Date | Device | Action | Findings |
+|---|---|---|---|
+| 2026-11-18 | JK_B2A16S (C8:47:80:60:0F:A0) | Renamed `509300D0608` → `Reveng` → `aaaa` → `zzzz` | Command 0x9B, see [Renaming](#renaming) |
+
+`tools/btsnoop_jk.py <btsnoop_hci.log>` lists the connections, the ATT writes (hex and ASCII) and the
+JK frames in a capture, without Wireshark.
+
 ## Open questions
 
-- How renaming works (capture pending).
 - The start voltage register on a JK04 balancer that allows changing it: 0x58 (esphome) or 0x00
   (offset rule)?
 - What the unknown JK04 settings at offsets 74, 98 and 102 are.
-- Layout and registers of the current JK balancers.
+- Whether the JK02 registers work on the JK_B2A16S (layout JK02_32S, same as the BMS).
+- Names longer than 13 characters.
 
 ## Python sketch
 
