@@ -10,11 +10,11 @@ uses ESP-IDF's NimBLE.
 
 Originally based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk-bms).
 
-| Overview | Cells |
+| Overview | Device |
 |---|---|
-| ![Overview](doc/screenshots/overview.png) | ![Cells](doc/screenshots/cells.png) |
-| **Wire resistance** | **Device** |
-| ![Wire resistance](doc/screenshots/resistance.png) | ![Device](doc/screenshots/device.png) |
+| ![Overview](doc/screenshots/overview.png) | ![Device](doc/screenshots/device.png) |
+| **Cells** | **Wire resistance** |
+| ![Cells](doc/screenshots/cells.png) | ![Wire resistance](doc/screenshots/resistance.png) |
 | **Device picker** | |
 | ![Device picker](doc/screenshots/picker.png) | |
 
@@ -29,11 +29,14 @@ Originally based on [peff74/Arduino-jk-bms](https://github.com/peff74/Arduino-jk
     - BMS: state-of-charge ring, Charging / Discharging / Idle, Ah left, voltage, current, power
     - Balancer: balance current ring (against the max balance current), Balancing / Waiting / Off,
       trigger delta, pack voltage, cell delta, average cell voltage
+  - **Device**: model, hardware / software version, protocol, the balancing settings, uptime
+    (plus temperatures, cycles and switches on a BMS), and a **Change** button to pick another device.
+    Tap the Balancing card to open **Settings**: rename the device, switch balancing on or off, and
+    change start voltage, trigger delta, max balance current, cell count and power off voltage.
+    Each change is read back from the device, so you see whether it took it.
   - **Cells**: lowest / highest cell, delta and average on top, a tile per cell below with a level bar.
     The lowest cell is blue, the highest red. The grid sizes itself to the cell count (up to 32).
   - **Wire resistance**: the balance lead resistance of each cell in milliohms, highest in red.
-  - **Device**: model, hardware / software version, protocol, the balancing settings, uptime
-    (plus temperatures, cycles and switches on a BMS), and a **Change** button to pick another device.
 - **Status bar** with the device name and a connection dot (green: data, amber: connecting).
   Hold it to open the device picker.
 - **JK BMS and JK active balancers.** The frame layout is detected automatically:
@@ -78,6 +81,8 @@ both to `true` to turn the picture by 180 degrees. Some newer CYDs have an ST778
 
 ## Serial console
 
+Commands run when the line ends: set your serial monitor to send CR, LF or both.
+
 | Command | |
 |---|---|
 | `status` | Device, link state, protocol, every cell, settings |
@@ -87,7 +92,12 @@ both to `true` to turn the picture by 180 degrees. Some newer CYDs have an ST778
 | `cancel` | Leave the picker |
 | `forget` | Forget the saved device |
 | `dump` | Raw device info, settings and cell info frames in hex (for decoding new devices) |
-| `page <n>` | Show page 0-3 |
+| `set` / `set <key> <value>` | List the writable settings with their values, or write one (read back after) |
+| `rename <name>` | Rename the device (1-13 characters) |
+| `wreg <reg> <len> <value>` | Write a raw register (hex); a value with a `.` is sent as a float |
+| `page <n>` | Show page 0-3 (Overview, Device, Cells, Wire resistance) |
+| `settings` | Open the Settings screen |
+| `tap <x> <y> [ms]` / `swipe <x1> <y1> <x2> <y2> [ms]` | Press or drag on the screen |
 | `shot [name]` | Print the screen over serial; `tools/shots.py <log> <dir>` turns it into a PNG |
 
 ## Code layout

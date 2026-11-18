@@ -9,7 +9,7 @@
 static const int DOT = 6;
 static const int DOT_ACTIVE_W = 16;
 static const int DOT_GAP = 6;
-static const char *const TITLES[UI_PAGE_COUNT] = {"Overview", "Cells", "Wire resistance", "Device"};
+static const char *const TITLES[UI_PAGE_COUNT] = {"Overview", "Device", "Cells", "Wire resistance"};
 
 static lv_obj_t *main_, *picker_, *settings_, *tiles_;
 static lv_obj_t *statusDot_, *statusName_, *pageTitle_;
@@ -163,9 +163,9 @@ static void buildMain() {
     lv_obj_set_style_bg_opa(tiles_, LV_OPA_TRANSP, 0);
     lv_obj_set_scrollbar_mode(tiles_, LV_SCROLLBAR_MODE_OFF);
     homeBuild(lv_tileview_add_tile(tiles_, UI_PAGE_HOME, 0, LV_DIR_RIGHT));
+    infoBuild(lv_tileview_add_tile(tiles_, UI_PAGE_INFO, 0, LV_DIR_HOR));
     cellsBuild(lv_tileview_add_tile(tiles_, UI_PAGE_CELLS, 0, LV_DIR_HOR));
-    resistBuild(lv_tileview_add_tile(tiles_, UI_PAGE_RESIST, 0, LV_DIR_HOR));
-    infoBuild(lv_tileview_add_tile(tiles_, UI_PAGE_INFO, 0, LV_DIR_LEFT));
+    resistBuild(lv_tileview_add_tile(tiles_, UI_PAGE_RESIST, 0, LV_DIR_LEFT));
     lv_obj_add_event_cb(tiles_, onTileChanged, LV_EVENT_VALUE_CHANGED, nullptr);
 
     for(int i = 0; i < UI_PAGE_COUNT; i++) dots_[i] = uiBox(main_, 0, 0, DOT, DOT, UI_FAINT, LV_RADIUS_CIRCLE);

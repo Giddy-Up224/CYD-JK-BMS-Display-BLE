@@ -52,7 +52,7 @@ bool uiFresh(const BmsSnapshot &d);
 bool uiIsBalancer(const BmsSnapshot &d);
 
 // Pages of the main screen
-enum { UI_PAGE_HOME, UI_PAGE_CELLS, UI_PAGE_RESIST, UI_PAGE_INFO, UI_PAGE_COUNT };
+enum { UI_PAGE_HOME, UI_PAGE_INFO, UI_PAGE_CELLS, UI_PAGE_RESIST, UI_PAGE_COUNT };
 void homeBuild(lv_obj_t *page);
 void homeUpdate(const BmsSnapshot &d);
 void cellsBuild(lv_obj_t *page);
