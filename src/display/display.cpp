@@ -104,20 +104,30 @@ static void flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixels) {
 }
 
 // A press from the console (displayTap), read instead of the panel
-static volatile int64_t tapUntilUs_ = 0;
-static volatile int16_t tapX_, tapY_;
+static volatile int64_t tapFromUs_ = 0, tapUntilUs_ = 0;
+static volatile int16_t tapX1_, tapY1_, tapX2_, tapY2_;
+
+void displaySwipe(int x1, int y1, int x2, int y2, int ms) {
+    tapX1_ = static_cast<int16_t>(x1);
+    tapY1_ = static_cast<int16_t>(y1);
+    tapX2_ = static_cast<int16_t>(x2);
+    tapY2_ = static_cast<int16_t>(y2);
+    tapFromUs_ = esp_timer_get_time();
+    tapUntilUs_ = tapFromUs_ + (ms > 0 ? ms : 1) * 1000LL;
+}
 
 void displayTap(int x, int y, int ms) {
-    tapX_ = static_cast<int16_t>(x);
-    tapY_ = static_cast<int16_t>(y);
-    tapUntilUs_ = esp_timer_get_time() + ms * 1000LL;
+    displaySwipe(x, y, x, y, ms);
 }
 
 static void readTouch(lv_indev_t *, lv_indev_data_t *data) {
     int16_t x, y;
-    if(esp_timer_get_time() < tapUntilUs_) {
-        data->point.x = tapX_;
-        data->point.y = tapY_;
+    int64_t now = esp_timer_get_time();
+    if(now < tapUntilUs_) {
+        // where along the swipe we are; a tap stays put
+        int64_t t = now - tapFromUs_, len = tapUntilUs_ - tapFromUs_;
+        data->point.x = static_cast<int32_t>(tapX1_ + (tapX2_ - tapX1_) * t / len);
+        data->point.y = static_cast<int32_t>(tapY1_ + (tapY2_ - tapY1_) * t / len);
         data->state = LV_INDEV_STATE_PRESSED;
     } else if(touchRead(x, y)) {
         data->point.x = x;

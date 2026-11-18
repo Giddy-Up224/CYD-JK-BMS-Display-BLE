@@ -166,8 +166,8 @@ From esphome-jk-bms, with our test results. `-`: not in that layout.
 | Balancing start voltage | 0x58 (?) | 0x26 | 0x22 | JK04: no effect on JK-B1A16S, see quirks. JK02_32S: works |
 | Balance trigger delta | 0x64 | 0x06 | 0x06 | JK04, JK02_32S: works |
 | Max balance current | 0x68 | 0x13 | 0x13 | JK04: works up to the device's rating. JK02_32S: works |
-| Power off voltage | 0x20 | 0x0B | 0x0B | not yet |
-| Cell count | 0x1C | 0x1C | 0x1C | not yet |
+| Power off voltage | 0x20 | 0x0B | 0x0B | JK02_32S: ignored (1.65 and 1.75 V), see quirks |
+| Cell count | 0x1C | 0x1C | 0x1C | JK02_32S: works (integer, len 4) |
 | Balancing switch | 0x6C | 0x1F | 0x1F | JK04, JK02_32S: works |
 | Voltage calibration | 0x44 | 0x21 | 0x64 | not yet |
 | Charging switch | - | 0x1D | 0x1D | not yet |
@@ -331,6 +331,10 @@ All u32, voltages in mV, currents in mA.
     does nothing.
   - Max balance current above 1.0 A is ignored (a 1 A balancer); 0.8 A is accepted.
   - No serial number in the info frame.
+- **JK_B2A16S (hw 11U, sw 11.56, JK02_32S):**
+  - Power off voltage can't be changed from 1.70 V; 1.65 and 1.75 V were both ignored (UVP 1.80,
+    UVPR 1.85 at the time). Like the start voltage on the B1A16S, some settings are just locked
+    on some units.
 - **ESP32 (the CYD), not the JK device:** with ESP-IDF 5.5.3 every connection dropped with a
   supervision timeout ~4 s after connecting. ESP-IDF 5.3.1 is fine. Doesn't matter for other
   clients, but worth knowing if a link keeps dropping.
@@ -349,6 +353,9 @@ All u32, voltages in mV, currents in mA.
 | 2026-11-18 | JK_B2A16S (JK02_32S) | `set balance off`, then `on` | Changed and back |
 | 2026-11-18 | JK_B2A16S (JK02_32S) | `set maxbal 1.5`, then `2` | Changed and back |
 | 2026-11-18 | JK_B2A16S (JK02_32S) | `set start 2.1`, then `2` | Changed and back (reg 0x22) |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | On-screen editor: trigger 12 mV, then 10 mV | Changed and back |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | On-screen editor: power off 1.75 V, 1.65 V | Ignored, stays 1.70 V |
+| 2026-11-18 | JK_B2A16S (JK02_32S) | On-screen editor: cell count 15, then 16 | Changed and back |
 
 ## Captures
 
@@ -365,6 +372,8 @@ JK frames in a capture, without Wireshark.
   (offset rule)?
 - What the unknown JK04 settings at offsets 74, 98 and 102 are.
 - Names longer than 13 characters.
+- Whether power off voltage on the JK_B2A16S is locked, or needs another register or a value
+  range we haven't tried. A capture of the JK app changing it would tell.
 
 ## Python sketch
 

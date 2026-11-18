@@ -15,6 +15,8 @@ esp_err_t displayInit();
 void displayScreenshot(const char *name);
 // Presses the screen at x, y for ms, as if touched (console `tap`)
 void displayTap(int x, int y, int ms);
+// A press that moves from (x1, y1) to (x2, y2) in ms
+void displaySwipe(int x1, int y1, int x2, int y2, int ms);
 
 void lvglLock();
 void lvglUnlock();

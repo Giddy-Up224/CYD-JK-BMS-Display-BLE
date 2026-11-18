@@ -6,9 +6,6 @@
 // change is read back: a JK device ignores values it doesn't accept without
 // saying so, so the dialog waits for the next settings (or info) frame and
 // shows whether the device took it.
-//
-// Cell count and power off voltage are shown but not editable here: they are
-// set once when the balancer is installed, and a wrong cell count upsets it.
 
 #include <initializer_list>
 #include <stdio.h>
@@ -46,7 +43,7 @@ static void fmtValue(JkSetting s, int32_t m, char *buf, size_t size) {
 
 // --- Rows
 
-enum class RowKind : uint8_t { Name, Switch, Value, ReadOnly };
+enum class RowKind : uint8_t { Name, Switch, Value };
 
 struct Row {
     RowKind kind;
@@ -394,7 +391,7 @@ static Row &addRow(RowKind kind, JkSetting s, const char *key) {
         lv_obj_set_style_bg_color(r.card, UI_CARD_HI, LV_STATE_PRESSED);
         lv_obj_add_event_cb(r.card, onRow, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<intptr_t>(i)));
     }
-    lv_obj_t *k = uiLabel(r.card, &lv_font_montserrat_14, kind == RowKind::ReadOnly ? UI_DIM : UI_TEXT);
+    lv_obj_t *k = uiLabel(r.card, &lv_font_montserrat_14, UI_TEXT);
     lv_label_set_text(k, key);
     lv_obj_align(k, LV_ALIGN_LEFT_MID, 12, 0);
 
@@ -410,7 +407,7 @@ static Row &addRow(RowKind kind, JkSetting s, const char *key) {
         r.value = nullptr;
         return r;
     }
-    r.value = uiLabel(r.card, &lv_font_montserrat_14, kind == RowKind::ReadOnly ? UI_DIM : UI_ACCENT);
+    r.value = uiLabel(r.card, &lv_font_montserrat_14, UI_ACCENT);
     lv_obj_align(r.value, LV_ALIGN_RIGHT_MID, tappable ? -30 : -12, 0);
     if(tappable) {
         lv_obj_t *chev = uiLabel(r.card, &lv_font_montserrat_12, UI_FAINT);
@@ -507,8 +504,7 @@ static void update(lv_timer_t *) {
             uiSetText(r.value, "--");
         }
     }
-    uiSetText(note_, on ? "Cell count and power off voltage: change them in the JK app."
-                        : "Not connected. Settings show once the device sends them.");
+    uiSetText(note_, on ? "" : "Not connected. Settings show once the device sends them.");
 }
 
 // --- Screen
@@ -541,8 +537,8 @@ lv_obj_t *settingsBuild() {
     addRow(RowKind::Value, JkSetting::StartBalanceV, "Start voltage");
     addRow(RowKind::Value, JkSetting::TriggerDeltaV, "Trigger delta");
     addRow(RowKind::Value, JkSetting::MaxBalanceA, "Max balance current");
-    addRow(RowKind::ReadOnly, JkSetting::CellCount, "Cell count");
-    addRow(RowKind::ReadOnly, JkSetting::PowerOffV, "Power off voltage");
+    addRow(RowKind::Value, JkSetting::CellCount, "Cell count");
+    addRow(RowKind::Value, JkSetting::PowerOffV, "Power off voltage");
 
     note_ = uiLabel(list_, &lv_font_montserrat_12, UI_DIM);
     lv_obj_set_width(note_, UI_CONTENT_W - 8);

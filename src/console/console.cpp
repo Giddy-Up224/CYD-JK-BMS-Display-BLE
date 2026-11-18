@@ -216,6 +216,13 @@ static void run(char *line) {
         } else {
             printf("tap <x> <y> [ms]: presses the screen (hold with ms >= 400 for a long press)\n");
         }
+    } else if(!strcmp(line, "swipe")) {
+        int x1, y1, x2, y2, ms = 300;
+        if(sscanf(arg, "%d %d %d %d %d", &x1, &y1, &x2, &y2, &ms) >= 4) {
+            displaySwipe(x1, y1, x2, y2, ms);
+        } else {
+            printf("swipe <x1> <y1> <x2> <y2> [ms]: drags across the screen\n");
+        }
     } else if(!strcmp(line, "settings")) {
         uiShowSettings();
     } else if(!strcmp(line, "wreg")) {
@@ -223,7 +230,7 @@ static void run(char *line) {
     } else if(!strcmp(line, "page")) {
         uiGoToPage(atoi(arg));
     } else {
-        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | rename <name> | wreg <reg> <len> <value> | page <n> | settings | tap <x> <y> [ms] | shot [name]\n");
+        printf("Commands: status | scan | found | select <n|mac> | cancel | forget | dump | set [<key> <value>] | rename <name> | wreg <reg> <len> <value> | page <n> | settings | tap <x> <y> [ms] | swipe <x1> <y1> <x2> <y2> [ms] | shot [name]\n");
     }
 }
 
