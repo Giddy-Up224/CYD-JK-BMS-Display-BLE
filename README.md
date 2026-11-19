@@ -64,7 +64,7 @@ The first build downloads ESP-IDF, LVGL and the ILI9341 driver (ESP-IDF componen
 a few minutes.
 
 Some CYDs don't enter the bootloader on their own. If the upload fails with *Wrong boot mode*, hold
-**BOOT**, tap **RST**, release **BOOT** and upload again.
+**BOOT**, start the upload again, and release **BOOT** once the upload has started.
 
 **ESP-IDF version:** the project is pinned to `espressif32@6.9.0` (ESP-IDF 5.3.1). With ESP-IDF 5.5.3
 every BLE connection on the ESP32 dropped with a supervision timeout about 4 seconds after connecting.
